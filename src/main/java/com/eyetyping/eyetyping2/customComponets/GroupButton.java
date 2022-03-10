@@ -12,7 +12,7 @@ public class GroupButton extends Button {
 
     public GroupButton(String text){
         super(text);
-        updateFeedback();
+        //updateFeedback();
     }
 
 

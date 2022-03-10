@@ -1,7 +1,9 @@
 package com.eyetyping.eyetyping2.controllers;
 
 import com.eyetyping.eyetyping2.customComponets.*;
+import com.eyetyping.eyetyping2.services.SuggestionsService;
 import com.eyetyping.eyetyping2.utils.ButtonsUtils;
+import com.eyetyping.eyetyping2.utils.GlobalVariables;
 import com.eyetyping.eyetyping2.utils.WindowDimensions;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -11,17 +13,20 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.shape.Line;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class KeyboardController implements Initializable {
 
+    private final SuggestionsService suggestionsService = SuggestionsService.getInstance();
+
     public static final int TOTAL_GROUPS = 6;
+    private List<WordButton> suggestedWords = new ArrayList<>();
+    private List<WordButton> suggestedLetters = new ArrayList<>();
     private List<GroupButton> groupsButtonList = new ArrayList<>();
     private final HashMap<String, SecundaryButton> alphabetButtons = new HashMap<>();
     private final List<SecundaryButton> recentSecondaryRowButtons = new ArrayList<>();
+    private List<SuggestedLetterButton> thirdRowButtons = new ArrayList<>();
+    private List<SuggestedLetterButton> forthRowButtons = new ArrayList<>();
 
     private final WindowDimensions windowDimensions = new WindowDimensions();
     private double screenWidth;
@@ -30,15 +35,18 @@ public class KeyboardController implements Initializable {
     private double buttonHeight;
 
     private String focussedGroup = "";
-    private SecundaryButton focussedSecundary;
+    private Button focussedButtonForReverse;
     private ReverseCrossingButtons openReverse;
 
     @FXML
     private AnchorPane rootAnchor;
     private Line separator;
 
+    //TextArea Variables
     private DisplayTextLabel wordsToWrite;
     private TextWrittenLabel wordsWritten;
+    private String currentWordAux = "";
+
 
 
 
@@ -46,27 +54,75 @@ public class KeyboardController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         addRootAnchorListeners();
         groupsButtonList = ButtonsUtils.createGroupButtons(TOTAL_GROUPS);
-        groupsButtonList.forEach((button -> alphabetButtons.putAll(ButtonsUtils.createAlphabetButtons(button.getText(), button, this::secundaryButtonsEnterEvent, this::secundaryButtonsExitEvent))));
-        setupInitialButtons();
+        groupsButtonList.forEach((button -> alphabetButtons.putAll(ButtonsUtils.createAlphabetButtons(button.getText(), button, this::secundaryButtonsEnterEvent))));
         setupTextArea();
+        setupGroupButtons();
+        setupSuggestedWordButtons();
+        setupSuggestLettersButtons();
+        setupThirdRowButtons();
+        setupForthRowButtons();
     }
 
-    private void setupInitialButtons() {
+    private void setupGroupButtons() {
         int widthAux = 0;
         for (Button button : groupsButtonList) {
             button.setPrefSize(buttonWidth,buttonHeight);
             button.setLayoutX(widthAux);
             button.setLayoutY(screenHeight-buttonHeight);
             button.setOnMouseEntered(this::groupsButtonEnterEvent);
-            button.setOnMouseExited(this::groupsButtonExitEvent);
             button.setOnMouseClicked((event -> wordsToWrite.displayPhrase()));
             widthAux+=buttonWidth;
             rootAnchor.getChildren().add(button);
         }
     }
 
+    private void setupSuggestedWordButtons(){
+        suggestedWords = ButtonsUtils.createSuggestedWordButtons(TOTAL_GROUPS);
+        int xCoordinateAux = 0;
+        for (WordButton button : suggestedWords) {
+            button.setOnMouseEntered(this::suggestedWordButtonsEnterEvent);
+            button.setPrefSize(buttonWidth, buttonHeight);
+            button.setLayoutX(xCoordinateAux);
+            button.setLayoutY(separator.getStartY());
+            xCoordinateAux+=buttonWidth;
+        }
+        rootAnchor.getChildren().addAll(suggestedWords);
+
+    }
+
+    private void setupSuggestLettersButtons(){
+        suggestedLetters = ButtonsUtils.createSuggestedWordButtons(TOTAL_GROUPS);
+        int xCoordinateAux = 0;
+        for (WordButton button : suggestedLetters) {
+            button.setOnMouseEntered(this::suggestedWordButtonsEnterEvent);
+            button.setPrefSize(buttonWidth, buttonHeight);
+            button.setLayoutX(xCoordinateAux);
+            button.setLayoutY(separator.getStartY() + buttonHeight + (ReverseCrossingButtons.getMargin()*2) + (button.getPrefHeight()/2));
+            xCoordinateAux+=buttonWidth;
+        }
+        rootAnchor.getChildren().addAll(suggestedLetters);
+
+    }
+
+    private void setupThirdRowButtons(){
+        thirdRowButtons = ButtonsUtils.createThirdRowButtons(TOTAL_GROUPS, "thirdRow");
+        for (SuggestedLetterButton button : thirdRowButtons) {
+            button.setPrefSize(buttonWidth, buttonHeight);
+            button.setOnMouseEntered(this::thirdRowButtonsEnterEvent);
+        }
+    }
+
+    private void setupForthRowButtons(){
+        forthRowButtons = ButtonsUtils.createThirdRowButtons(TOTAL_GROUPS, "forthRow");
+        for (SuggestedLetterButton button : forthRowButtons) {
+            button.setPrefSize(buttonWidth, buttonHeight);
+            button.setOnMouseEntered(this::fourthRowButtonsEnterEvent);
+        }
+    }
+
     private void setupTextArea(){
-        separator = new Line(0,85, windowDimensions.getWidth(), 85);
+        double separatorY = 85;
+        separator = new Line(0,separatorY, windowDimensions.getWidth(), separatorY);
         separator.setStrokeWidth(3);
         wordsToWrite = new DisplayTextLabel();
         wordsWritten = new TextWrittenLabel();
@@ -79,78 +135,155 @@ public class KeyboardController implements Initializable {
     private void groupsButtonEnterEvent(MouseEvent mouseEvent) {
         GroupButton focussedButton = (GroupButton) mouseEvent.getSource();
         String groupString = focussedButton.getText();
+        clearThirdRowButtons();
+        clearForthRowButtons();
+        rootAnchor.getChildren().remove(openReverse);
         if(!focussedGroup.equals(groupString)){
-            focussedButton.setFocussed(true);
-            focussedButton.updateFeedback();
             if(!recentSecondaryRowButtons.isEmpty())
                 clearSecundaryButtons();
             for (char c: groupString.toCharArray()) {
                 recentSecondaryRowButtons.add(alphabetButtons.get(Character.toString(c)));
             }
             int widthAux = 0;
-            double alphabetButtonWidth = screenWidth/recentSecondaryRowButtons.size();
             for (Button button: recentSecondaryRowButtons) {
-                button.setPrefSize(alphabetButtonWidth, buttonHeight);
+                button.setPrefSize(buttonWidth, buttonHeight);
                 button.setLayoutX(widthAux);
                 button.setLayoutY(screenHeight- (2*buttonHeight));
                 rootAnchor.getChildren().add(button);
-                widthAux+=alphabetButtonWidth;
+                widthAux+=buttonWidth;
             }
             focussedGroup = groupString;
         }
     }
 
-    private void groupsButtonExitEvent(MouseEvent mouseEvent) {
-        GroupButton focussedButton = (GroupButton) mouseEvent.getSource();
-        String groupString = focussedButton.getText();
-        focussedButton.setFocussed(false);
-        focussedButton.updateFeedback();
-        if(!focussedGroup.equals(groupString)){
-            clearSecundaryButtons();
-        }
-
-    }
-
     private void secundaryButtonsEnterEvent(MouseEvent mouseEvent){
         SecundaryButton secundaryButton = (SecundaryButton)(mouseEvent.getSource());
-        if(focussedSecundary!= secundaryButton){
-            focussedSecundary = secundaryButton;
+        checkReverseCrossing(secundaryButton);
+        clearThirdRowButtons();
+        clearForthRowButtons();
+        if(focussedButtonForReverse != secundaryButton){
+            focussedButtonForReverse = secundaryButton;
             if(openReverse!=null)
                 rootAnchor.getChildren().remove(openReverse);
             openReverse = new ReverseCrossingButtons(secundaryButton.getText(), secundaryButton);
             rootAnchor.getChildren().add(openReverse);
+            List<String> suggestedLetters = suggestionsService.getSuggestionList(secundaryButton.getText());
+            if(suggestedLetters.size()>0){
+                for (int i = 0; i < thirdRowButtons.size(); i++) {
+                    SuggestedLetterButton button = thirdRowButtons.get(i);
+                    button.setParentButton(secundaryButton);
+                    String word = suggestedLetters.get(i);
+                    button.setText(word.substring(0,Math.min(2, word.length())).toUpperCase());
 
-        }
-    }
-    private void secundaryButtonsExitEvent(MouseEvent mouseEvent){
-        /* SecundaryButton secundaryButton = (SecundaryButton)(mouseEvent.getSource());
-        ReverseCrossingButtons reverseCrossingButton = null;
-        for (ReverseCrossingButtons r: reverseCrossingButtonsList) {
-            if(r.getText().equals(secundaryButton.getText())){
-                reverseCrossingButton = r;
-                break;
+                }
+                resizeButtons();
+                rootAnchor.getChildren().addAll(thirdRowButtons);
             }
         }
-        if(reverseCrossingButton!=null){
-            reverseCrossingButtonsList.remove(reverseCrossingButton);
-            rootAnchor.getChildren().remove(reverseCrossingButton);
-        } */
+    }
+
+    private void thirdRowButtonsEnterEvent(MouseEvent mouseEvent){
+        SuggestedLetterButton thirdRowButton = (SuggestedLetterButton)(mouseEvent.getSource());
+        checkReverseCrossing(thirdRowButton);
+        clearForthRowButtons();
+        if(focussedButtonForReverse != thirdRowButton){
+            focussedButtonForReverse = thirdRowButton;
+            if(openReverse!=null)
+                rootAnchor.getChildren().remove(openReverse);
+            openReverse = new ReverseCrossingButtons(thirdRowButton.getText(), thirdRowButton);
+            rootAnchor.getChildren().add(openReverse);
+            List<String> suggestedLetters = suggestionsService.getSuggestionList(thirdRowButton.getText());
+            for (int i = 0; i < forthRowButtons.size(); i++) {
+                SuggestedLetterButton button = forthRowButtons.get(i);
+                button.setParentButton(thirdRowButton);
+                String word = suggestedLetters.get(i);
+                button.setText(word.substring(0,Math.min(3, word.length())).toUpperCase());
+            }
+            resizeButtons();
+            rootAnchor.getChildren().addAll(forthRowButtons);
+        }
+    }
+
+    private void fourthRowButtonsEnterEvent(MouseEvent mouseEvent){
+        SuggestedLetterButton fourthRowButton = (SuggestedLetterButton)(mouseEvent.getSource());
+        checkReverseCrossing(fourthRowButton);
+        if(focussedButtonForReverse != fourthRowButton){
+            focussedButtonForReverse = fourthRowButton;
+            if(openReverse!=null)
+                rootAnchor.getChildren().remove(openReverse);
+            openReverse = new ReverseCrossingButtons(fourthRowButton.getText(), fourthRowButton);
+            rootAnchor.getChildren().add(openReverse);
+        }
+    }
+
+    private void suggestedWordButtonsEnterEvent(MouseEvent mouseEvent){
+        WordButton wordButton = (WordButton)(mouseEvent.getSource());
+        checkReverseCrossing(wordButton);
+        if(focussedButtonForReverse != wordButton) {
+            focussedButtonForReverse = wordButton;
+            if (openReverse != null)
+                rootAnchor.getChildren().remove(openReverse);
+            openReverse = new ReverseCrossingButtons(wordButton.getText(), wordButton);
+            rootAnchor.getChildren().add(openReverse);
+        }
     }
 
     private void clearSecundaryButtons(){
-        recentSecondaryRowButtons.forEach((button -> rootAnchor.getChildren().remove(button)));
+        rootAnchor.getChildren().removeAll(recentSecondaryRowButtons);
         recentSecondaryRowButtons.clear();
     }
 
+    private void clearThirdRowButtons(){
+        thirdRowButtons.forEach((button -> rootAnchor.getChildren().remove(button)));
+    }
+
+    private void clearForthRowButtons(){
+        forthRowButtons.forEach((button -> rootAnchor.getChildren().remove(button)));
+    }
+
     private void resizeButtons(){
-        int widthAux = 0;
+        int xCoordinateAux = 0;
         for (Button button : groupsButtonList) {
             button.setPrefSize(buttonWidth,buttonHeight);
-            button.setLayoutX(widthAux);
+            button.setLayoutX(xCoordinateAux);
             button.setLayoutY(screenHeight-buttonHeight);
-            widthAux+=buttonWidth;
+            xCoordinateAux+=buttonWidth;
         }
-        alphabetButtons.forEach((key, value) -> value.setPrefSize(buttonWidth,buttonHeight));
+        xCoordinateAux = 0;
+        for (WordButton button : suggestedWords) {
+            button.setPrefSize(buttonWidth, buttonHeight);
+            button.setLayoutX(xCoordinateAux);
+            xCoordinateAux+=buttonWidth;
+        }
+        xCoordinateAux = 0;
+        for (SecundaryButton button : recentSecondaryRowButtons) {
+            button.setPrefSize(buttonWidth,buttonHeight);
+            button.setLayoutX(xCoordinateAux);
+            button.setLayoutY(screenHeight - (2*buttonHeight));
+            xCoordinateAux+=buttonWidth;
+        }
+        xCoordinateAux = 0;
+        for (WordButton button : suggestedLetters) {
+            button.setPrefSize(buttonWidth, buttonHeight);
+            button.setLayoutX(xCoordinateAux);
+            button.setLayoutY(separator.getStartY() + buttonHeight + (ReverseCrossingButtons.getMargin()*2) + (button.getPrefHeight()/2));
+            xCoordinateAux+=buttonWidth;
+        }
+        xCoordinateAux = 0;
+        for (SuggestedLetterButton button : thirdRowButtons) {
+            button.setPrefSize(buttonWidth, buttonHeight);
+            button.setLayoutX(xCoordinateAux);
+            button.setLayoutY(button.getParentButton().getLayoutY() - (ReverseCrossingButtons.getMargin()*2) - (button.getPrefHeight()/2) - buttonHeight);
+            xCoordinateAux+=buttonWidth;
+        }
+        xCoordinateAux = 0;
+        for (SuggestedLetterButton button : forthRowButtons) {
+            button.setPrefSize(buttonWidth, buttonHeight);
+            button.setLayoutX(xCoordinateAux);
+            button.setLayoutY(button.getParentButton().getLayoutY() - (ReverseCrossingButtons.getMargin()*2) - (button.getPrefHeight()/2) - buttonHeight);
+            xCoordinateAux+=buttonWidth;
+        }
+
 
     }
 
@@ -163,6 +296,48 @@ public class KeyboardController implements Initializable {
         wordsWritten.setLayoutX(windowDimensions.getWidth()*0.1); //10% margin right and left
         wordsWritten.setLayoutY(50);
         separator.setEndX(windowDimensions.getWidth());
+    }
+
+    private void checkReverseCrossing(Button button){
+        if(openReverse!= null){
+            if(openReverse.isReverseCrossing() && button.equals(openReverse.getParentButton())){
+                List<String> wordsWrittenList = wordsWritten.getWords();
+                String fullText = "";
+                if(!button.getText().equals(" ")){
+                    if(button instanceof WordButton){
+                        currentWordAux=button.getText() + " ";
+                        for (String word: wordsWrittenList)
+                            fullText+= word + " ";
+                        fullText+=currentWordAux;
+                        wordsWritten.setText(fullText);
+                        wordsWrittenList.add(currentWordAux);
+                    }else{
+                        currentWordAux+=button.getText();
+                        for (String word: wordsWrittenList)
+                            fullText+= word + " ";
+                        fullText+=currentWordAux;
+                        wordsWritten.setText(fullText);
+                        int aux = 0;
+                        List<String> suggestedWordsList = suggestionsService.getSuggestionList(currentWordAux);
+                        if(suggestedWordsList.size()>0){
+                            for (WordButton wordButton :suggestedWords) {
+                                if(aux < suggestedWordsList.size()){
+                                    wordButton.setText(suggestedWordsList.get(aux).toUpperCase());
+                                    aux++;
+                                }
+                            }
+                        }
+                    }
+                }else{
+                    wordsWrittenList.add(currentWordAux);
+                    for (String word: wordsWrittenList)
+                        fullText+= word + " ";
+                    wordsWritten.setText(fullText);
+                    currentWordAux="";
+                }
+            }
+        }
+
     }
 
     private void addRootAnchorListeners(){

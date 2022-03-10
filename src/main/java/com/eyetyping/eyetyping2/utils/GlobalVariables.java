@@ -8,6 +8,9 @@ public class GlobalVariables {
     public static final String PHRASES_PATH = "src/main/resources/phrases.txt";
 
     public static final String ALPHABET_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    public static final String ALPHABET_LETTERS_EXTENDED = "ABCDEFGHIJKLMNOPQRSTUVWXYZ!?., ";
+
+    public static final String WORDS_20K_PATH = "src/main/resources/Top20kEnglishWords";
 
 
 

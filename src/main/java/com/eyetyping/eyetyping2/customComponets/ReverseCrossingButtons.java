@@ -1,6 +1,7 @@
 package com.eyetyping.eyetyping2.customComponets;
 
 import javafx.scene.control.Button;
+import javafx.scene.input.MouseEvent;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,18 +9,30 @@ import lombok.Setter;
 @Setter
 public class ReverseCrossingButtons extends Button {
 
-    private double margin = 5;
+    private static double margin = 5;
     private final Button parentButton;
+    private boolean reverseCrossing;
 
     public ReverseCrossingButtons(String text, Button parentButton){
         super(text);
         this.parentButton = parentButton;
+        reverseCrossing = false;
+        setOnMouseEntered(this::reverseCrossingEvent);
         setPrefSize(this.parentButton.getWidth()/2, this.parentButton.getPrefHeight()/2); //botao com metade do tamanho do pai
         setLayoutX((parentButton.getLayoutX() + parentButton.getLayoutBounds().getCenterX())-(getPrefWidth()/2)); //centrar o reverse crossing button acima do butao pai
-        setLayoutY(parentButton.getLayoutY()-getPrefHeight()-margin); //posicionar o Y
+        if(parentButton instanceof SecundaryButton || parentButton instanceof SuggestedLetterButton)
+            setLayoutY(parentButton.getLayoutY()-getPrefHeight()-margin); //posicionar o Y acima do botao
+        else if(parentButton instanceof WordButton)
+            setLayoutY(parentButton.getLayoutY() + parentButton.getPrefHeight()+margin); //posicionar o Y abaixo do botao
     }
 
+    private void reverseCrossingEvent(MouseEvent mouseEvent) {
+        reverseCrossing = true;
+    }
 
+    public static double getMargin(){
+        return margin;
+    }
 
 
 }
