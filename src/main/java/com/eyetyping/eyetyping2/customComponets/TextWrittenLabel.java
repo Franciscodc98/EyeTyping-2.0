@@ -4,13 +4,13 @@ import javafx.scene.control.Label;
 import javafx.scene.text.Font;
 import lombok.Getter;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 @Getter
 public class TextWrittenLabel extends Label {
 
-    private final List<String> words = new ArrayList<>();
+    private final List<Character> words = new LinkedList<>();
 
     public TextWrittenLabel(){
         super();

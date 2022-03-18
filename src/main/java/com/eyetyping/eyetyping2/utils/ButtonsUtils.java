@@ -2,9 +2,6 @@ package com.eyetyping.eyetyping2.utils;
 
 import com.eyetyping.eyetyping2.customComponets.GroupButton;
 import com.eyetyping.eyetyping2.customComponets.SecundaryButton;
-import com.eyetyping.eyetyping2.customComponets.SuggestedLetterButton;
-import com.eyetyping.eyetyping2.customComponets.WordButton;
-import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
 
 import java.util.ArrayList;
@@ -28,29 +25,35 @@ public class ButtonsUtils {
     }
 
 
-    public static HashMap<String, SecundaryButton> createAlphabetButtons(String subButtons, Button groupParent, Consumer<MouseEvent> enterMouse) {
+    public static HashMap<String, SecundaryButton> createAlphabetButtons(String subButtons,Consumer<MouseEvent> enterMouse) {
         HashMap<String, SecundaryButton> alphabet = new HashMap<>();
         for (char c: subButtons.toCharArray()) {
-            SecundaryButton button = new SecundaryButton(Character.toString(c), groupParent);
+            SecundaryButton button = new SecundaryButton( c!= ' ' ? Character.toString(c) : "SPACE");
+            button.setGroupName("firstRow");
             button.setOnMouseEntered(enterMouse::accept); //adicionar a funcao listener
-            alphabet.put(button.getText(), button);
+            alphabet.put(Character.toString(c), button);
         }
         return alphabet;
     }
 
 
-    public static List<WordButton> createSuggestedWordButtons(int numberOfButtons){
-        List<WordButton> buttons = new ArrayList<>();
-        for (int i = 0; i < numberOfButtons; i++)
-            buttons.add(new WordButton("Word " + (i+1)));
+    public static List<SecundaryButton> createSuggestedWordButtons(int numberOfButtons, GroupNames groupNames){
+        List<SecundaryButton> buttons = new ArrayList<>();
+        for (int i = 0; i < numberOfButtons; i++){
+            SecundaryButton button = new SecundaryButton("Word " + (i+1));
+            button.setGroupName(groupNames.getGroupName());
+            buttons.add(button);
+        }
         return buttons;
     }
 
 
-    public static List<SuggestedLetterButton> createThirdRowButtons(int totalGroups, String groupName) {
-        List<SuggestedLetterButton> buttons = new ArrayList<>();
+    public static List<SecundaryButton> createThirdRowButtons(int totalGroups, GroupNames groupName) {
+        List<SecundaryButton> buttons = new ArrayList<>();
         for (int i = 0; i < totalGroups; i++) {
-            buttons.add(new SuggestedLetterButton(groupName));
+            SecundaryButton button = new SecundaryButton();
+            button.setGroupName(groupName.getGroupName());
+            buttons.add(button);
         }
         return buttons;
     }

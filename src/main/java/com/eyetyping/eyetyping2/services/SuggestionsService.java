@@ -6,8 +6,7 @@ import lombok.Data;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Data
 public class SuggestionsService {
@@ -17,14 +16,30 @@ public class SuggestionsService {
     private List<String> allWords = new ArrayList<>();
 
     private SuggestionsService(){
-        loadTop20Words();
+        loadTop20kWords();
     }
 
-    private List<String> generateSuggestedSubstring(String substring){
-        return allWords.stream().filter(word -> word.startsWith(substring)).toList();
+    public List<String> getSuggestionList(String text) {
+        return allWords.stream().filter(word -> word.startsWith(text.toLowerCase())).filter(word -> word.length() > 1).map(String::toUpperCase).toList();
     }
 
-    private void loadTop20Words(){
+    public List<String> sortedMostCommonSubstrings(List<String> allWords, int indexes){
+        LinkedHashMap<String, Integer> count = new LinkedHashMap<>();
+        for (String word: allWords) {
+            if (word.length() > indexes){
+                String wordAux = word.substring(0, indexes);
+                if(!count.containsKey(wordAux))
+                    count.put(wordAux, 1);
+                else
+                    count.put(wordAux,count.get(wordAux)+1);
+            }
+        }
+        List<Map.Entry<String, Integer>> sortedList = new ArrayList<>(count.entrySet());
+        sortedList.sort((o1, o2) -> -Integer.compare(o1.getValue(), o2.getValue()));
+        return sortedList.stream().map(Map.Entry::getKey).toList();
+    }
+
+    private void loadTop20kWords(){
         try {
             allWords = Files.readAllLines(Paths.get(GlobalVariables.WORDS_20K_PATH));
         } catch (IOException e) {
@@ -38,12 +53,13 @@ public class SuggestionsService {
         return singleton;
     }
 
-
     public static void main(String[] args) {
-        getInstance().generateSuggestedSubstring("he").forEach(System.out::println);
-    }
+        //getInstance().generateSuggestedSubstring("he").forEach(System.out::println);
+        List<String> test = getInstance().sortedMostCommonSubstrings(getInstance().getSuggestionList("V"), 2);
+        for (String s :
+                test) {
+            System.out.println(s);
+        }
 
-    public List<String> getSuggestionList(String text) {
-        return allWords.stream().filter(word -> word.startsWith(text.toLowerCase())).toList();
     }
 }

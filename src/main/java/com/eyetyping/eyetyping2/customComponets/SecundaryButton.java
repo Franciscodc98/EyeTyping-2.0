@@ -2,16 +2,22 @@ package com.eyetyping.eyetyping2.customComponets;
 
 import javafx.scene.control.Button;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Setter
 public class SecundaryButton extends Button {
 
-    private final Button parentButton;
-    private String groupName = "secondRow";
+    private Button parentButton;
+    private String groupName;
 
-    public SecundaryButton(String text, Button parentButton){
+    public SecundaryButton(String text){
         super(text);
-        this.parentButton = parentButton;
+        parentButton = new Button();
+    }
+
+    public SecundaryButton(){
+        parentButton = new Button();
     }
 
 
