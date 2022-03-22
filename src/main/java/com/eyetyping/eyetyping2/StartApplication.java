@@ -8,8 +8,8 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-
 public class StartApplication extends Application {
+
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(StartApplication.class.getResource("main-view.fxml"));
@@ -17,8 +17,11 @@ public class StartApplication extends Application {
         stage.setFullScreen(true);
         stage.setTitle("EyeTyping!");
         stage.setScene(scene);
+        KeyboardController controller = fxmlLoader.getController();
+        controller.setKeyListener(scene);
         stage.show();
     }
+
 
     public static void main(String[] args) {
         launch();

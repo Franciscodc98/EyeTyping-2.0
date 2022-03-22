@@ -1,4 +1,4 @@
-package com.eyetyping.eyetyping2.utils;
+package com.eyetyping.eyetyping2.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

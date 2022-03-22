@@ -2,6 +2,8 @@ package com.eyetyping.eyetyping2.utils;
 
 import com.eyetyping.eyetyping2.customComponets.GroupButton;
 import com.eyetyping.eyetyping2.customComponets.SecundaryButton;
+import com.eyetyping.eyetyping2.enums.GroupNames;
+import com.eyetyping.eyetyping2.enums.VariableGroups;
 import javafx.scene.input.MouseEvent;
 
 import java.util.ArrayList;
@@ -14,14 +16,20 @@ public class ButtonsUtils {
     private ButtonsUtils(){}
 
 
-    public static List<GroupButton> createGroupButtons(int numberOfGroups){
+    public static List<GroupButton> createGroupButtons(VariableGroups groups, int numberOfGroups){
         List<GroupButton> buttonList = new ArrayList<>();
-        for (int i = 0; i < numberOfGroups; i++) {
-            String buttonText = StringUtils.getSubstringFromLetterString2(numberOfGroups, i);
-            GroupButton button = new GroupButton(buttonText);
-            buttonList.add(button);
+        if(groups.getVariableGroupName().equals(VariableGroups.BIG_GROUPS.getVariableGroupName()) ||
+                groups.getVariableGroupName().equals(VariableGroups.MEDIUM_GROUPS.getVariableGroupName())){
+            for (int i = 0; i < numberOfGroups; i++) {
+                String buttonText = StringUtils.getSubstringFromLetterString2(numberOfGroups, i);
+                GroupButton button = new GroupButton(buttonText);
+                buttonList.add(button);
+            }
+        } else{
+            //create variable groups
         }
         return buttonList;
+
     }
 
 

@@ -1,14 +1,18 @@
 package com.eyetyping.eyetyping2.controllers;
 
 import com.eyetyping.eyetyping2.customComponets.*;
+import com.eyetyping.eyetyping2.enums.VariableGroups;
+import com.eyetyping.eyetyping2.services.DataService;
 import com.eyetyping.eyetyping2.services.SuggestionsService;
 import com.eyetyping.eyetyping2.services.WrittingService;
 import com.eyetyping.eyetyping2.utils.ButtonsUtils;
-import com.eyetyping.eyetyping2.utils.GroupNames;
+import com.eyetyping.eyetyping2.enums.GroupNames;
 import com.eyetyping.eyetyping2.utils.WindowDimensions;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.shape.Line;
@@ -22,9 +26,10 @@ public class KeyboardController implements Initializable {
     //Services
     private final SuggestionsService suggestionsService = SuggestionsService.getInstance();
     private final WrittingService writtingService = WrittingService.getInstance();
+    private final DataService dataService = DataService.getInstance();
 
-
-    public static final int TOTAL_GROUPS = 6;
+    private int TOTAL_GROUPS;
+    private VariableGroups variableGroups = null;
     private final HashMap<String, ActionButton> actionButtonsHashMap = new HashMap<>();
     private List<SecundaryButton> suggestedWordsButtons = new ArrayList<>();
     private List<GroupButton> groupsButtonList = new ArrayList<>();
@@ -55,13 +60,22 @@ public class KeyboardController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         addRootAnchorListeners();
-        groupsButtonList = ButtonsUtils.createGroupButtons(TOTAL_GROUPS);
+        calculateGroupsSize(VariableGroups.MEDIUM_GROUPS); //Alterar isto para os diferentes tipos de layout
+        groupsButtonList = ButtonsUtils.createGroupButtons(variableGroups, TOTAL_GROUPS);
         groupsButtonList.forEach((button -> alphabetButtons.putAll(ButtonsUtils.createAlphabetButtons(button.getText(), this::secundaryButtonsEnterEvent))));
         setupTextArea();
         setupGroupButtons();
         setupSuggestedWordButtons();
         setupThirdRowButtons();
         setupForthRowButtons();
+    }
+
+    private void calculateGroupsSize(VariableGroups variableGroups){
+        this.variableGroups = variableGroups;
+        if(variableGroups.getVariableGroupName().equals(VariableGroups.BIG_GROUPS.getVariableGroupName()))
+            TOTAL_GROUPS = 4;
+        else
+            TOTAL_GROUPS = 6;
     }
 
     private void setupGroupButtons() {
@@ -331,8 +345,10 @@ public class KeyboardController implements Initializable {
                 String buttonText = button.getText();
                 if(button instanceof SecundaryButton secundaryButton){
                     if(secundaryButton.getGroupName().equals(GroupNames.WORDS_ROW.getGroupName())){
-                        wordsWritten.setText(writtingService.addWord(buttonText).stream().map(c -> Character.toString(c)).collect(Collectors.joining()));
-                        clearAllPopupButtons();
+                        if(!secundaryButton.getText().equals("")){
+                            wordsWritten.setText(writtingService.addWord(buttonText).stream().map(c -> Character.toString(c)).collect(Collectors.joining()));
+                            clearAllPopupButtons();
+                        }
                     }else{
                         if(buttonText.equals("SPACE")){
                             wordsWritten.setText(writtingService.addLetters(" ").stream().map(c -> Character.toString(c)).collect(Collectors.joining()));
@@ -381,7 +397,27 @@ public class KeyboardController implements Initializable {
         });
     }
 
-    public static void main(String[] args) {
+    public void setKeyListener(Scene scene) {
+        scene.setOnKeyPressed(event -> {
+            System.out.println("Clicked");
+            System.out.println(event.getCode());
+            if(event.getCode() == KeyCode.CONTROL && !dataService.isStarted()){
+                dataService.startTimer();
+                wordsToWrite.setText(dataService.getDataset().removeFirst());
+            }else if(event.getCode() == KeyCode.CONTROL && !dataService.getDataset().isEmpty()){
+                wordsToWrite.setText(dataService.getDataset().removeFirst());
+            } else if(event.getCode() == KeyCode.CONTROL && dataService.getDataset().isEmpty()){
+                wordsToWrite.setText("Experiment is finished, thank you!");
+                dataService.stopTimer();
+                dataService.saveData(variableGroups,"Francisco Cardoso", 22);
+            }
+        });
     }
 
+    private void mouseMovementEvent(MouseEvent mouseEvent) {
+        System.out.println("X:" + mouseEvent.getX() + ", Y:" + mouseEvent.getY());
+    }
+
+    public static void main(String[] args) {
+    }
 }
