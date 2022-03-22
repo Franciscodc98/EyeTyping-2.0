@@ -28,6 +28,9 @@ public class KeyboardController implements Initializable {
     private final WrittingService writtingService = WrittingService.getInstance();
     private final DataService dataService = DataService.getInstance();
 
+
+    private static final int TIME = 10;
+
     private int TOTAL_GROUPS;
     private VariableGroups variableGroups = null;
     private final HashMap<String, ActionButton> actionButtonsHashMap = new HashMap<>();
@@ -399,9 +402,15 @@ public class KeyboardController implements Initializable {
 
     public void setKeyListener(Scene scene) {
         scene.setOnKeyPressed(event -> {
-            System.out.println("Clicked");
+
             System.out.println(event.getCode());
             if(event.getCode() == KeyCode.CONTROL && !dataService.isStarted()){
+                new Timer().schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                finished();
+                            }
+                        }, TIME * 60 *1000);
                 dataService.startTimer();
                 wordsToWrite.setText(dataService.getDataset().removeFirst());
             }else if(event.getCode() == KeyCode.CONTROL && !dataService.getDataset().isEmpty()){
@@ -409,9 +418,14 @@ public class KeyboardController implements Initializable {
             } else if(event.getCode() == KeyCode.CONTROL && dataService.getDataset().isEmpty()){
                 wordsToWrite.setText("Experiment is finished, thank you!");
                 dataService.stopTimer();
-                dataService.saveData(variableGroups,"Francisco Cardoso", 22);
+                finished();
             }
         });
+    }
+
+    private void finished() {
+        dataService.saveData(variableGroups,"Francisco Cardoso", 22);
+        //TODO: Continue logic here
     }
 
     private void mouseMovementEvent(MouseEvent mouseEvent) {
