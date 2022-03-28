@@ -2,36 +2,50 @@ package com.eyetyping.eyetyping2.controllers;
 
 import com.eyetyping.eyetyping2.customComponets.*;
 import com.eyetyping.eyetyping2.enums.VariableGroups;
+import com.eyetyping.eyetyping2.eyetracker.Connections;
 import com.eyetyping.eyetyping2.services.DataService;
+import com.eyetyping.eyetyping2.services.MouseService;
 import com.eyetyping.eyetyping2.services.SuggestionsService;
 import com.eyetyping.eyetyping2.services.WrittingService;
 import com.eyetyping.eyetyping2.utils.ButtonsUtils;
 import com.eyetyping.eyetyping2.enums.GroupNames;
+import com.eyetyping.eyetyping2.utils.Position2D;
 import com.eyetyping.eyetyping2.utils.WindowDimensions;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Cursor;
+import javafx.scene.ImageCursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.robot.Robot;
 import javafx.scene.shape.Line;
+import lombok.Data;
 
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Data
 public class KeyboardController implements Initializable {
 
     //Services
     private final SuggestionsService suggestionsService = SuggestionsService.getInstance();
     private final WrittingService writtingService = WrittingService.getInstance();
     private final DataService dataService = DataService.getInstance();
+    private final MouseService mouseService = MouseService.getSingleton();
+
+    private Connections connections = new Connections();
 
 
     private static final int TIME = 10;
 
     private int TOTAL_GROUPS;
+    private int TOTAL_BUTTONS_PER_ROW;
     private VariableGroups variableGroups = null;
     private final HashMap<String, ActionButton> actionButtonsHashMap = new HashMap<>();
     private List<SecundaryButton> suggestedWordsButtons = new ArrayList<>();
@@ -51,6 +65,8 @@ public class KeyboardController implements Initializable {
     private Button focussedButtonForReverse;
     private ReverseCrossingButtons openReverse;
 
+    private Scene mainScene = null;
+
     @FXML
     private AnchorPane rootAnchor;
     private Line separator;
@@ -59,18 +75,16 @@ public class KeyboardController implements Initializable {
     private DisplayTextLabel wordsToWrite;
     private TextWrittenLabel wordsWritten;
 
+    //mouse
+
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        addRootAnchorListeners();
         calculateGroupsSize(VariableGroups.MEDIUM_GROUPS); //Alterar isto para os diferentes tipos de layout
-        groupsButtonList = ButtonsUtils.createGroupButtons(variableGroups, TOTAL_GROUPS);
-        groupsButtonList.forEach((button -> alphabetButtons.putAll(ButtonsUtils.createAlphabetButtons(button.getText(), this::secundaryButtonsEnterEvent))));
-        setupTextArea();
-        setupGroupButtons();
-        setupSuggestedWordButtons();
-        setupThirdRowButtons();
-        setupForthRowButtons();
+        setupButtons();
+        addRootAnchorListeners();
+        mouseService.setKeyboardController(this);
+        mouseService.setWindowDimensions(windowDimensions);
     }
 
     private void calculateGroupsSize(VariableGroups variableGroups){
@@ -81,39 +95,50 @@ public class KeyboardController implements Initializable {
             TOTAL_GROUPS = 6;
     }
 
+    private void setupButtons(){
+        setupGroupButtons();
+        setupTextArea();
+        setupSuggestedWordButtons();
+        setupThirdRowButtons();
+        setupForthRowButtons();
+    }
+
     private void setupGroupButtons() {
+        groupsButtonList = ButtonsUtils.createGroupButtons(variableGroups, TOTAL_GROUPS);
         int widthAux = 0;
         for (Button button : groupsButtonList) {
             button.setPrefSize(buttonWidth,buttonHeight);
             button.setLayoutX(widthAux);
             button.setLayoutY(screenHeight-buttonHeight);
             button.setOnMouseEntered(this::groupsButtonEnterEvent);
-            button.setOnMouseClicked((event -> wordsToWrite.displayPhrase()));
+            //button.setOnMouseClicked((event -> wordsToWrite.displayPhrase()));
+            button.setOnMouseMoved(this::mouseMovementEvent);
             widthAux+=buttonWidth;
-            rootAnchor.getChildren().add(button);
         }
+        rootAnchor.getChildren().addAll(groupsButtonList);
+        groupsButtonList.forEach((button -> alphabetButtons.putAll(ButtonsUtils.createAlphabetButtons(button.getText(), this::secundaryButtonsEnterEvent, this::mouseMovementEvent))));
     }
 
     private void setupSuggestedWordButtons(){
         suggestedWordsButtons = ButtonsUtils.createSuggestedWordButtons(TOTAL_GROUPS, GroupNames.WORDS_ROW);
         int xCoordinateAux = 0;
         for (SecundaryButton button : suggestedWordsButtons) {
-            button.setOnMouseEntered(this::suggestedWordButtonsEnterEvent);
             button.setPrefSize(buttonWidth, buttonHeight);
             button.setLayoutX(xCoordinateAux);
             button.setLayoutY(separator.getStartY());
+            button.setOnMouseEntered(this::suggestedWordButtonsEnterEvent);
+            button.setOnMouseMoved(this::mouseMovementEvent);
             xCoordinateAux+=buttonWidth;
         }
         rootAnchor.getChildren().addAll(suggestedWordsButtons);
-
     }
-
 
     private void setupThirdRowButtons(){
         thirdRowButtons = ButtonsUtils.createThirdRowButtons(TOTAL_GROUPS, GroupNames.THIRD_ROW);
         for (SecundaryButton button : thirdRowButtons) {
             button.setPrefSize(buttonWidth, buttonHeight);
             button.setOnMouseEntered(this::thirdRowButtonsEnterEvent);
+            button.setOnMouseMoved(this::mouseMovementEvent);
         }
     }
 
@@ -122,6 +147,7 @@ public class KeyboardController implements Initializable {
         for (SecundaryButton button : forthRowButtons) {
             button.setPrefSize(buttonWidth, buttonHeight);
             button.setOnMouseEntered(this::fourthRowButtonsEnterEvent);
+            button.setOnMouseMoved(this::mouseMovementEvent);
         }
     }
 
@@ -132,6 +158,7 @@ public class KeyboardController implements Initializable {
         ActionButton deleteButton = new ActionButton("delete");
         actionButtonsHashMap.put(deleteButton.getAction(),deleteButton);
         deleteButton.setOnMouseEntered(this::deleteButtonEnterEvent);
+        deleteButton.setOnMouseMoved(this::mouseMovementEvent);
         wordsToWrite = new DisplayTextLabel();
         wordsWritten = new TextWrittenLabel();
         resizeTextAreaContent();
@@ -175,7 +202,7 @@ public class KeyboardController implements Initializable {
             focussedButtonForReverse = secundaryButton;
             if(openReverse!=null)
                 rootAnchor.getChildren().remove(openReverse);
-            openReverse = new ReverseCrossingButtons(secundaryButton.getText(), secundaryButton);
+            openReverse = new ReverseCrossingButtons(secundaryButton.getText(), secundaryButton, this::mouseMovementEvent);
             rootAnchor.getChildren().add(openReverse);
             if(!secundaryButton.getText().equals("SPACE"))
                 fillSuggestedWords(secundaryButton, GroupNames.THIRD_ROW.getGroupName());
@@ -226,7 +253,7 @@ public class KeyboardController implements Initializable {
             focussedButtonForReverse = thirdRowButton;
             if(openReverse!=null)
                 rootAnchor.getChildren().remove(openReverse);
-            openReverse = new ReverseCrossingButtons(thirdRowButton.getText(), thirdRowButton);
+            openReverse = new ReverseCrossingButtons(thirdRowButton.getText(), thirdRowButton, this::mouseMovementEvent);
             rootAnchor.getChildren().add(openReverse);
             fillSuggestedWords(thirdRowButton, GroupNames.FOURTH_ROW.getGroupName());
         }
@@ -239,7 +266,7 @@ public class KeyboardController implements Initializable {
             focussedButtonForReverse = fourthRowButton;
             if(openReverse!=null)
                 rootAnchor.getChildren().remove(openReverse);
-            openReverse = new ReverseCrossingButtons(fourthRowButton.getText(), fourthRowButton);
+            openReverse = new ReverseCrossingButtons(fourthRowButton.getText(), fourthRowButton, this::mouseMovementEvent);
             rootAnchor.getChildren().add(openReverse);
         }
     }
@@ -251,7 +278,7 @@ public class KeyboardController implements Initializable {
             focussedButtonForReverse = deleteButton;
             if(openReverse!=null)
                 rootAnchor.getChildren().remove(openReverse);
-            openReverse = new ReverseCrossingButtons("confirm", deleteButton);
+            openReverse = new ReverseCrossingButtons("confirm", deleteButton, this::mouseMovementEvent);
             rootAnchor.getChildren().add(openReverse);
         }
     }
@@ -263,7 +290,7 @@ public class KeyboardController implements Initializable {
             focussedButtonForReverse = wordButton;
             if (openReverse != null)
                 rootAnchor.getChildren().remove(openReverse);
-            openReverse = new ReverseCrossingButtons(wordButton.getText(), wordButton);
+            openReverse = new ReverseCrossingButtons(wordButton.getText(), wordButton, this::mouseMovementEvent);
             rootAnchor.getChildren().add(openReverse);
         }
     }
@@ -346,7 +373,9 @@ public class KeyboardController implements Initializable {
         if(openReverse!= null){
             if(openReverse.isReverseCrossing() && button.equals(openReverse.getParentButton())){
                 String buttonText = button.getText();
+                dataService.incrementTotalAccess();
                 if(button instanceof SecundaryButton secundaryButton){
+                    dataService.incrementGroupAccess(secundaryButton.getGroupName());
                     if(secundaryButton.getGroupName().equals(GroupNames.WORDS_ROW.getGroupName())){
                         if(!secundaryButton.getText().equals("")){
                             wordsWritten.setText(writtingService.addWord(buttonText).stream().map(c -> Character.toString(c)).collect(Collectors.joining()));
@@ -361,9 +390,12 @@ public class KeyboardController implements Initializable {
                         }
                     }
                 }else if(button instanceof ActionButton){
-                    if(buttonText.equals("delete"))
+                    if(buttonText.equals("delete")){
                         wordsWritten.setText(writtingService.deleteLetter().stream().map(c -> Character.toString(c)).collect(Collectors.joining()));
+                        dataService.incrementDeletes();
+                    }
                 }
+                openReverse.setReverseCrossing(false);
             }
         }
 
@@ -390,6 +422,7 @@ public class KeyboardController implements Initializable {
             windowDimensions.setHeight(newValue.doubleValue());
             resizeTextAreaContent();
             resizeButtons();
+            mouseService.setWindowDimensions(windowDimensions);
         });
         rootAnchor.widthProperty().addListener((observable, oldValue, newValue) -> {
             screenWidth = newValue.doubleValue();
@@ -397,39 +430,64 @@ public class KeyboardController implements Initializable {
             windowDimensions.setWidth(newValue.doubleValue());
             resizeTextAreaContent();
             resizeButtons();
+            mouseService.setWindowDimensions(windowDimensions);
         });
     }
 
-    public void setKeyListener(Scene scene) {
-        scene.setOnKeyPressed(event -> {
-
+    public void setKeyListener() {
+        mainScene.setOnKeyPressed(event -> {
             System.out.println(event.getCode());
-            if(event.getCode() == KeyCode.CONTROL && !dataService.isStarted()){
+            if(event.getCode() == KeyCode.CONTROL && !dataService.isStarted() && !dataService.isFinished()){
                 new Timer().schedule(new TimerTask() {
                             @Override
                             public void run() {
-                                finished();
+                                dataService.timerFinished(TIME);
+                                Platform.runLater(() -> finished());
                             }
                         }, TIME * 60 *1000);
+
+                connections.connect("localhost", 3000);
                 dataService.startTimer();
                 wordsToWrite.setText(dataService.getDataset().removeFirst());
-            }else if(event.getCode() == KeyCode.CONTROL && !dataService.getDataset().isEmpty()){
+            }else if(event.getCode() == KeyCode.CONTROL && !dataService.getDataset().isEmpty() && !dataService.isFinished()){
                 wordsToWrite.setText(dataService.getDataset().removeFirst());
-            } else if(event.getCode() == KeyCode.CONTROL && dataService.getDataset().isEmpty()){
-                wordsToWrite.setText("Experiment is finished, thank you!");
+                writtingService.nextPhrase();
+            } else if(event.getCode() == KeyCode.CONTROL && dataService.getDataset().isEmpty() && !dataService.isFinished()){
                 dataService.stopTimer();
+                finished();
+            } else if(event.getCode() == KeyCode.BACK_SPACE){
                 finished();
             }
         });
     }
 
     private void finished() {
-        dataService.saveData(variableGroups,"Francisco Cardoso", 22);
-        //TODO: Continue logic here
+        if(!dataService.isSaved()){
+            wordsToWrite.setText("Experiment is finished, thank you!");
+            dataService.saveData(variableGroups,"Francisco Cardoso", 22, writtingService);
+        }
+        connections.setRunning(false);
     }
 
+
     private void mouseMovementEvent(MouseEvent mouseEvent) {
-        System.out.println("X:" + mouseEvent.getX() + ", Y:" + mouseEvent.getY());
+        /**
+        if(mouseEvent.getSource() instanceof Button button)
+            mouseService.updateList(new Position2D((button.getLayoutX() + mouseEvent.getX()), (button.getLayoutY() + mouseEvent.getY())));
+        else
+            mouseService.updateList(new Position2D(mouseEvent.getX(), mouseEvent.getY()));
+        if(mouseService.getLastMouseCoords().isFull())
+            refreshNewMouse(mouseService.averagePosition());
+         **/
+    }
+
+    public void setupCloneMouse(){
+        //Cursor cursor = Cursor.OPEN_HAND;
+        //mainScene.cursorProperty().setValue();
+    }
+
+    public void refreshNewMouse(Position2D pos) {
+        new Robot().mouseMove(pos.getX(), pos.getY());
     }
 
     public static void main(String[] args) {

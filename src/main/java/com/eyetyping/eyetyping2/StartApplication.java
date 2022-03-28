@@ -18,7 +18,9 @@ public class StartApplication extends Application {
         stage.setTitle("EyeTyping!");
         stage.setScene(scene);
         KeyboardController controller = fxmlLoader.getController();
-        controller.setKeyListener(scene);
+        controller.setMainScene(scene);
+        controller.setKeyListener();
+        controller.setupCloneMouse();
         stage.show();
     }
 

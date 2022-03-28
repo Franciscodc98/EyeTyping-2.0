@@ -6,6 +6,8 @@ import javafx.scene.input.MouseEvent;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.function.Consumer;
+
 @Getter
 @Setter
 public class ReverseCrossingButtons extends Button {
@@ -14,11 +16,12 @@ public class ReverseCrossingButtons extends Button {
     private final Button parentButton;
     private boolean reverseCrossing;
 
-    public ReverseCrossingButtons(String text, Button parentButton){
+    public ReverseCrossingButtons(String text, Button parentButton, Consumer<MouseEvent> mouseMove){
         super(text);
         this.parentButton = parentButton;
         reverseCrossing = false;
         setOnMouseEntered(this::reverseCrossingEvent);
+        //setOnMouseMoved(mouseMove::accept);
         if(parentButton instanceof SecundaryButton secundaryButton){
             setPrefSize(this.parentButton.getWidth()/2, this.parentButton.getPrefHeight()/2); //botao com metade do tamanho do pai
             if(!secundaryButton.getGroupName().equals(GroupNames.WORDS_ROW.getGroupName())){
