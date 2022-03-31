@@ -8,9 +8,7 @@ import lombok.Getter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Scanner;
+import java.util.*;
 
 @Getter
 public class DataService{
@@ -32,13 +30,13 @@ public class DataService{
     private final HashMap<String, Integer> accessesData = new HashMap<>();
 
     private int totalAccesses = 0;
-    private int totalDeletes = 0;
+    private int totalLetterDeletes = 0;
+    private int totalWordDeletes = 0;
 
     private DataService(){
         loadDataset();
         for (GroupNames group :GroupNames.values())
             accessesData.put(group.getGroupName(), 0);
-        accessesData.forEach((s, integer) -> System.out.println(s + "|" + integer));
     }
 
     private void loadDataset() {
@@ -69,8 +67,12 @@ public class DataService{
         totalAccesses++;
     }
 
-    public void incrementDeletes() {
-        totalDeletes++;
+    public void incrementLetterDeletes() {
+        totalLetterDeletes++;
+    }
+
+    public void incrementWordDeletes() {
+        totalWordDeletes++;
     }
 
     public void startTimer(){
@@ -97,19 +99,15 @@ public class DataService{
         return singleton;
     }
 
-    public static void main(String[] args) {
-    }
-
-    public void saveData(VariableGroups layoutVariable, String userName, int age, WrittingService writtingService) {
+    public void saveDataToTxt(VariableGroups layoutVariable, String userName, int age, WrittingService writtingService) {
         this.writtingService = writtingService;
-        try(FileWriter fileWriter = new FileWriter("FirstBatch_" + layoutVariable + "_" + userName);){
+        try(FileWriter fileWriter = new FileWriter("FirstBatch_" + layoutVariable + "_" + userName)){
 
             fileWriter.WritePhrase("User: " + userName + ", age: " + age + " years old.");
-            fileWriter.WritePhrase("Variable: " + layoutVariable.getVariableGroupName());
             fileWriter.WritePhrase("Total time: " + getTimeElapsed() + "ms");
             fileWriter.WritePhrase("Total words written: " + writtingService.getTotalWordsWritten());
             fileWriter.WritePhrase("Total accesses: " + totalAccesses);
-            fileWriter.WritePhrase("Total deletions: " + totalDeletes);
+            fileWriter.WritePhrase("Total deletions: " + totalLetterDeletes);
             accessesData.forEach((groupName, count) -> {
                 fileWriter.WritePhrase(groupName + ": " + count);
             });
@@ -120,4 +118,23 @@ public class DataService{
         }
 
     }
+
+    public void saveDataToCsv(VariableGroups layoutVariable, String userName, int age, WrittingService writtingService){
+        this.writtingService = writtingService;
+
+
+    }
+
+    private String [] getCsvHeader(){
+        String headerAux = "First Name, Last Name, Layout, Total Time, Total words written, Total accesses, Total deletions";
+        String[] both = Arrays.copyOf(headerAux.split(", "), headerAux.split(", ").length + accessesData.keySet().toArray(new String[0]).length);
+        System.arraycopy(accessesData.keySet().toArray(new String[0]), 0, both, headerAux.split(", ").length, accessesData.keySet().toArray(new String[0]).length);
+        return both;
+    }
+
+    public static void main(String[] args) {
+        DataService dataService = DataService.getInstance();
+        Arrays.stream(dataService.getCsvHeader()).iterator().forEachRemaining(System.out::println);
+    }
+
 }

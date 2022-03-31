@@ -11,8 +11,9 @@ import lombok.Data;
 @Data
 public class MouseService {
 
-    private ShiftList<Position2D> lastMouseCoords = new ShiftList<>(10);
     private static MouseService singleton = null;
+
+    private ShiftList<Position2D> lastMouseCoords = new ShiftList<>(5);
     private Label label;
     private WindowDimensions windowDimensions;
     private KeyboardController keyboardController;

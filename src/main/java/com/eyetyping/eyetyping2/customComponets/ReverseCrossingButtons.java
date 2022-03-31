@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 @Setter
 public class ReverseCrossingButtons extends Button {
 
-    private static double margin = 5;
+    private static double margin = 15;
     private final Button parentButton;
     private boolean reverseCrossing;
 
@@ -32,10 +32,10 @@ public class ReverseCrossingButtons extends Button {
                 setLayoutY(parentButton.getLayoutY() + parentButton.getPrefHeight()+margin); //posicionar o Y abaixo do botao
             }
         }
-        else if(parentButton instanceof ActionButton){
-            setPrefSize(this.parentButton.getWidth() * 0.66, this.parentButton.getPrefHeight() * 0.66); //botao com 2/3 do tamanho do pai
-            setLayoutX(parentButton.getLayoutX() - getPrefWidth() - margin); //centrar o reverse crossing button acima do butao pai
-            setLayoutY(parentButton.getLayoutY() + parentButton.getPrefHeight() * (0.33/2));
+        else if(parentButton instanceof DeleteButton){
+            setPrefSize(this.parentButton.getWidth(), this.parentButton.getPrefHeight());
+            setLayoutX(parentButton.getLayoutX() - getPrefWidth() - margin);
+            setLayoutY(parentButton.getLayoutY());
         }
     }
 

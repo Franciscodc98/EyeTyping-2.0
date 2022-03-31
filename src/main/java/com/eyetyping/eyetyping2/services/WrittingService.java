@@ -46,6 +46,21 @@ public class WrittingService {
         return writtenText;
     }
 
+    public LinkedList<Character> deleteWord() {
+        LinkedList<Character> result = new LinkedList<>();
+        if(!writtenText.isEmpty()){
+            String [] aux = getTextString().split(" ");
+            for(int i = 0; i< aux.length-1; i++){
+                for(char c: aux[i].toCharArray())
+                    result.add(c);
+                result.add(' ');
+            }
+        }
+        writtenText.clear();
+        writtenText.addAll(result);
+        return result;
+    }
+
     public static WrittingService getInstance(){
         if(singleton==null)
             singleton = new WrittingService();
