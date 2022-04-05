@@ -9,6 +9,7 @@ import com.eyetyping.eyetyping2.services.SuggestionsService;
 import com.eyetyping.eyetyping2.services.WrittingService;
 import com.eyetyping.eyetyping2.utils.ButtonsUtils;
 import com.eyetyping.eyetyping2.enums.GroupNames;
+import com.eyetyping.eyetyping2.utils.Maths;
 import com.eyetyping.eyetyping2.utils.Position2D;
 import com.eyetyping.eyetyping2.utils.WindowDimensions;
 import javafx.application.Platform;
@@ -46,12 +47,13 @@ public class KeyboardController implements Initializable {
     private int TOTAL_SECUNDARY_GROUPS;
     private int TOTAL_BUTTONS_PER_ROW;
     private VariableGroups variableGroups = null;
-    private List<SecundaryButton> suggestedWordsButtons = new ArrayList<>();
+    private List<SecondaryButton> suggestedWordsButtons = new ArrayList<>();
     private List<GroupButton> groupsButtonList = new ArrayList<>();
-    private final HashMap<String, SecundaryButton> alphabetButtons = new HashMap<>();
-    private final List<SecundaryButton> recentSecondaryRowButtons = new ArrayList<>();
-    private List<SecundaryButton> thirdRowButtons = new ArrayList<>();
-    private List<SecundaryButton> forthRowButtons = new ArrayList<>();
+    private final HashMap<String, SecondaryButton> alphabetButtons = new HashMap<>();
+    private final List<SecondaryButton> recentSecondaryRowButtons = new ArrayList<>();
+    private List<SecondaryButton> thirdRowButtons = new ArrayList<>();
+    private List<SecondaryButton> forthRowButtons = new ArrayList<>();
+    private List<SecondaryButton> deleteOptions = new ArrayList<>();
 
     private final WindowDimensions windowDimensions = new WindowDimensions();
     private double screenWidth;
@@ -60,11 +62,7 @@ public class KeyboardController implements Initializable {
     private double buttonHeight;
 
     private String focussedGroup = "";
-    private Button focussedButtonForReverse;
-    private ReverseCrossingButtons openReverse;
     private String focussedSuggestion = "";
-    private DeleteButton deleteButton;
-    private ArrayList<ReverseCrossingDelete> deleteOptions = new ArrayList<ReverseCrossingDelete>();
 
     private Scene mainScene = null;
 
@@ -75,6 +73,12 @@ public class KeyboardController implements Initializable {
     //TextArea Variables
     private DisplayTextLabel wordsToWrite;
     private TextWrittenLabel wordsWritten;
+
+    //dwell time
+    private static final double DWELL_TIME = 1000; //dwell time for selection in ms
+    private Timer timer = new Timer();
+    private TimerTask progressBarProgress;
+    private double progressTimerAux = 0;
 
     //mouse
 
@@ -123,12 +127,13 @@ public class KeyboardController implements Initializable {
     private void setupSuggestedWordButtons(){
         suggestedWordsButtons = ButtonsUtils.createSuggestedWordButtons(TOTAL_GROUPS, GroupNames.WORDS_ROW);
         int xCoordinateAux = 0;
-        for (SecundaryButton button : suggestedWordsButtons) {
+        for (SecondaryButton button : suggestedWordsButtons) {
             button.setPrefSize(buttonWidth, buttonHeight);
             button.setLayoutX(xCoordinateAux);
             button.setLayoutY(separator.getStartY());
             button.setOnMouseEntered(this::suggestedWordButtonsEnterEvent);
             button.setOnMouseMoved(this::mouseMovementEvent);
+            button.setOnMouseExited(this::suggestedWordsExitEvent);
             xCoordinateAux+=buttonWidth;
         }
         rootAnchor.getChildren().addAll(suggestedWordsButtons);
@@ -136,7 +141,7 @@ public class KeyboardController implements Initializable {
 
     private void setupThirdRowButtons(){
         thirdRowButtons = ButtonsUtils.createThirdRowButtons(TOTAL_GROUPS, GroupNames.THIRD_ROW);
-        for (SecundaryButton button : thirdRowButtons) {
+        for (SecondaryButton button : thirdRowButtons) {
             button.setPrefSize(buttonWidth, buttonHeight);
             button.setOnMouseEntered(this::thirdRowButtonsEnterEvent);
             button.setOnMouseMoved(this::mouseMovementEvent);
@@ -146,7 +151,7 @@ public class KeyboardController implements Initializable {
 
     private void setupFourthRowButtons(){
         forthRowButtons = ButtonsUtils.createThirdRowButtons(TOTAL_GROUPS, GroupNames.FOURTH_ROW);
-        for (SecundaryButton button : forthRowButtons) {
+        for (SecondaryButton button : forthRowButtons) {
             button.setPrefSize(buttonWidth, buttonHeight);
             button.setOnMouseEntered(this::fourthRowButtonsEnterEvent);
             button.setOnMouseMoved(this::mouseMovementEvent);
@@ -158,16 +163,21 @@ public class KeyboardController implements Initializable {
         double separatorY = 85;
         separator = new Line(0,separatorY, windowDimensions.getWidth(), separatorY);
         separator.setStrokeWidth(3);
-        deleteButton = new DeleteButton();
-        deleteButton.setOnMouseEntered(this::deleteButtonEnterEvent);
-        deleteButton.setOnMouseMoved(this::mouseMovementEvent);
+        deleteOptions.add(SecondaryButton.asRoot("Delete word"));
+        deleteOptions.add(SecondaryButton.asRoot("Delete letter"));
+        deleteOptions.forEach((deleteButton) -> {
+            deleteButton.setOnMouseEntered(this::deleteButtonsEnterEvent);
+            deleteButton.setOnMouseExited(this::deleteButtonsExitEvent);
+            deleteButton.setGroupName("delete");
+        });
+
         wordsToWrite = new DisplayTextLabel();
         wordsWritten = new TextWrittenLabel();
         resizeTextAreaContent();
         rootAnchor.getChildren().add(separator);
         rootAnchor.getChildren().add(wordsToWrite);
         rootAnchor.getChildren().add(wordsWritten);
-        rootAnchor.getChildren().add(deleteButton);
+        rootAnchor.getChildren().addAll(deleteOptions);
     }
 
     private void groupsButtonEnterEvent(MouseEvent mouseEvent) {
@@ -175,8 +185,6 @@ public class KeyboardController implements Initializable {
         String groupString = focussedButton.getText();
         clearThirdRowButtons();
         clearForthRowButtons();
-        focussedButtonForReverse = null;
-        rootAnchor.getChildren().remove(openReverse);
         if(!focussedGroup.equals(groupString)){
             if(!recentSecondaryRowButtons.isEmpty())
                 clearSecundaryButtons();
@@ -184,7 +192,7 @@ public class KeyboardController implements Initializable {
                 recentSecondaryRowButtons.add(alphabetButtons.get(Character.toString(c)));
             }
             int widthAux = 0;
-            for (Button button: recentSecondaryRowButtons) {
+            for (SecondaryButton button: recentSecondaryRowButtons) {
                 button.setPrefSize(buttonWidth, buttonHeight);
                 button.setLayoutX(widthAux);
                 button.setLayoutY(screenHeight- (2*buttonHeight));
@@ -196,72 +204,113 @@ public class KeyboardController implements Initializable {
     }
 
     private void secundaryButtonsEnterEvent(MouseEvent mouseEvent){
-        SecundaryButton secundaryButton = (SecundaryButton)(mouseEvent.getSource());
-        removeDeleteOptionsReverseCrossing();
-        updateSuggestionTimer(secundaryButton);
-        checkReverseCrossing(secundaryButton);
+        SecondaryButton secondaryButton = (SecondaryButton)(mouseEvent.getSource());
+        startProgress(secondaryButton);
+        updateSuggestionTimer(secondaryButton);
         clearThirdRowButtons();
         clearForthRowButtons();
-        if(focussedButtonForReverse != secundaryButton){
-            focussedButtonForReverse = secundaryButton;
-            if(openReverse!=null)
-                rootAnchor.getChildren().remove(openReverse);
-            openReverse = new ReverseCrossingButtons(secundaryButton.getText(), secundaryButton, this::mouseMovementEvent);
-            rootAnchor.getChildren().add(openReverse);
-            if(!secundaryButton.getText().equals("SPACE"))
-                fillSuggestedWords(secundaryButton, GroupNames.THIRD_ROW.getGroupName());
-        }
+        if(!secondaryButton.getText().equals("SPACE"))
+            fillSuggestedWords(secondaryButton, GroupNames.THIRD_ROW.getGroupName());
+    }
+
+    private void startProgress(SecondaryButton secondaryButton) {
+        progressBarProgress = new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> {
+                    double progress = Maths.normalizeBetween0and1(0, DWELL_TIME, progressTimerAux);
+                    if (progress < 1.0){
+                        secondaryButton.setProgress(progress);
+                    } else{
+                        String buttonText = secondaryButton.getText();
+                        if(!secondaryButton.getGroupName().equals("delete")){
+                            if(!buttonText.equals("SPACE")){
+                                if(secondaryButton.getGroupName().equals(GroupNames.WORDS_ROW.getGroupName())){
+                                    setWrittenWordsText(buttonText, true);
+                                    clearAllPopupButtons();
+                                }else
+                                    setWrittenWordsText(buttonText, false);
+                            }else{
+                                setWrittenWordsText(" ", false);
+                            }
+                        }else{
+                            if(buttonText.equals("Delete letter")){
+                                wordsWritten.setText(writtingService.deleteLetter().stream().map(c -> Character.toString(c)).collect(Collectors.joining()) + "|");
+                                dataService.incrementLetterDeletes();
+                            }else{
+                                wordsWritten.setText(writtingService.deleteWord().stream().map(c -> Character.toString(c)).collect(Collectors.joining()) + "|");
+                                dataService.incrementWordDeletes();
+                            }
+                        }
+                        secondaryButton.setProgress(0);
+                        progressTimerAux = 0;
+                    }
+                });
+                progressTimerAux +=20;
+            }
+        };
+        timer.scheduleAtFixedRate(progressBarProgress, 0, 20); //updates progress Bar every 20ms
     }
 
     private void thirdRowButtonsEnterEvent(MouseEvent mouseEvent){
-        SecundaryButton thirdRowButton = (SecundaryButton)(mouseEvent.getSource());
-        removeDeleteOptionsReverseCrossing();
+        SecondaryButton thirdRowButton = (SecondaryButton)(mouseEvent.getSource());
+        startProgress(thirdRowButton);
         updateSuggestionTimer(thirdRowButton);
-        checkReverseCrossing(thirdRowButton);
         clearForthRowButtons();
-        if(focussedButtonForReverse != thirdRowButton){
-            focussedButtonForReverse = thirdRowButton;
-            if(openReverse!=null)
-                rootAnchor.getChildren().remove(openReverse);
-            openReverse = new ReverseCrossingButtons(thirdRowButton.getText(), thirdRowButton, this::mouseMovementEvent);
-            rootAnchor.getChildren().add(openReverse);
-            fillSuggestedWords(thirdRowButton, GroupNames.FOURTH_ROW.getGroupName());
-        }
+        fillSuggestedWords(thirdRowButton, GroupNames.FOURTH_ROW.getGroupName());
     }
 
     private void fourthRowButtonsEnterEvent(MouseEvent mouseEvent){
-        SecundaryButton fourthRowButton = (SecundaryButton)(mouseEvent.getSource());
-        removeDeleteOptionsReverseCrossing();
+        SecondaryButton fourthRowButton = (SecondaryButton)(mouseEvent.getSource());
+        startProgress(fourthRowButton);
         updateSuggestionTimer(fourthRowButton);
-        checkReverseCrossing(fourthRowButton);
-        if(focussedButtonForReverse != fourthRowButton){
-            focussedButtonForReverse = fourthRowButton;
-            if(openReverse!=null)
-                rootAnchor.getChildren().remove(openReverse);
-            openReverse = new ReverseCrossingButtons(fourthRowButton.getText(), fourthRowButton, this::mouseMovementEvent);
-            rootAnchor.getChildren().add(openReverse);
-        }
     }
 
     private void secundaryButtonsExitEvent(MouseEvent mouseEvent){
+        SecondaryButton secondaryButton = (SecondaryButton)(mouseEvent.getSource());
+        secondaryButton.setProgress(0);
         focussedSuggestion = "";
+        progressTimerAux = 0;
+        if(progressBarProgress !=null)
+            progressBarProgress.cancel();
     }
 
     private void thirdButtonsExitEvent(MouseEvent mouseEvent){
+        SecondaryButton secondaryButton = (SecondaryButton)(mouseEvent.getSource());
+        secondaryButton.setProgress(0);
         focussedSuggestion = "";
+        progressTimerAux = 0;
+        if(progressBarProgress !=null)
+            progressBarProgress.cancel();
     }
 
     private void fourthButtonsExitEvent(MouseEvent mouseEvent){
+        SecondaryButton secondaryButton = (SecondaryButton)(mouseEvent.getSource());
+        secondaryButton.setProgress(0);
         focussedSuggestion = "";
+        progressTimerAux = 0;
+        if(progressBarProgress !=null)
+            progressBarProgress.cancel();
     }
 
-    private void removeDeleteOptionsReverseCrossing(){
-        if(rootAnchor.getChildren().containsAll(deleteOptions)){
-            rootAnchor.getChildren().removeAll(deleteOptions);
-        }
+    private void deleteButtonsExitEvent(MouseEvent mouseEvent){
+        SecondaryButton secondaryButton = (SecondaryButton)(mouseEvent.getSource());
+        secondaryButton.setProgress(0);
+        progressTimerAux = 0;
+        if(progressBarProgress !=null)
+            progressBarProgress.cancel();
     }
 
-    private void updateSuggestionTimer(Button button){
+    private void suggestedWordsExitEvent(MouseEvent mouseEvent){
+        SecondaryButton suggestionWordButton = (SecondaryButton)(mouseEvent.getSource());
+        suggestionWordButton.setProgress(0);
+        focussedSuggestion = "";
+        progressTimerAux = 0;
+        if(progressBarProgress !=null)
+            progressBarProgress.cancel();
+    }
+
+    private void updateSuggestionTimer(SecondaryButton button){
         focussedSuggestion = button.getText();
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
@@ -279,13 +328,13 @@ public class KeyboardController implements Initializable {
 
     }
 
-    private void fillSuggestedWords(SecundaryButton button, String groupName){
+    private void fillSuggestedWords(SecondaryButton button, String groupName){
         List<String> suggestedLetters = suggestionsService.getSuggestionList(button.getText());
         if(suggestedLetters.size() > 0){
             if(groupName.equals(GroupNames.THIRD_ROW.getGroupName())){
                 int i = 0;
                 List<String> suggestions = suggestionsService.sortedMostCommonSubstrings(suggestedLetters, 2);
-                for(SecundaryButton suggestion : thirdRowButtons){
+                for(SecondaryButton suggestion : thirdRowButtons){
                     if(suggestions.size() > i){
                         suggestion.setParentButton(button);
                         suggestion.setText(suggestions.get(i));
@@ -298,7 +347,7 @@ public class KeyboardController implements Initializable {
             } else if(groupName.equals(GroupNames.FOURTH_ROW.getGroupName())){
                 int i = 0;
                 List<String> suggestions = suggestionsService.sortedMostCommonSubstrings(suggestedLetters, 3);
-                for(SecundaryButton suggestion : forthRowButtons){
+                for(SecondaryButton suggestion : forthRowButtons){
                     if(suggestions.size() > i){
                         suggestion.setParentButton(button);
                         suggestion.setText(suggestions.get(i));
@@ -313,33 +362,14 @@ public class KeyboardController implements Initializable {
         resizeButtons();
     }
 
-    private void deleteButtonEnterEvent(MouseEvent mouseEvent){
-        DeleteButton deleteButton = (DeleteButton)(mouseEvent.getSource());
-        if(deleteOptions.isEmpty()){
-            deleteOptions.add(new ReverseCrossingDelete(deleteButton, this::mouseMovementEvent, false));
-            deleteOptions.add(new ReverseCrossingDelete(deleteButton, this::mouseMovementEvent, true));
-        }
-        //checkReverseCrossing(deleteButton);
-        checkReverseCrossingDelete(deleteButton);
-        if(focussedButtonForReverse != deleteButton) {
-            focussedButtonForReverse = deleteButton;
-            if(openReverse!=null)
-                rootAnchor.getChildren().remove(openReverse);
-            rootAnchor.getChildren().addAll(deleteOptions);
-        }
+    private void deleteButtonsEnterEvent(MouseEvent mouseEvent){
+        SecondaryButton deleteButton = (SecondaryButton) (mouseEvent.getSource());
+        startProgress(deleteButton);
     }
 
     private void suggestedWordButtonsEnterEvent(MouseEvent mouseEvent){
-        SecundaryButton wordButton = (SecundaryButton)(mouseEvent.getSource());
-        removeDeleteOptionsReverseCrossing();
-        checkReverseCrossing(wordButton);
-        if(focussedButtonForReverse != wordButton) {
-            focussedButtonForReverse = wordButton;
-            if (openReverse != null)
-                rootAnchor.getChildren().remove(openReverse);
-            openReverse = new ReverseCrossingButtons(wordButton.getText(), wordButton, this::mouseMovementEvent);
-            rootAnchor.getChildren().add(openReverse);
-        }
+        SecondaryButton wordButton = (SecondaryButton)(mouseEvent.getSource());
+        startProgress(wordButton);
     }
 
     private void clearAllPopupButtons(){
@@ -371,36 +401,36 @@ public class KeyboardController implements Initializable {
             xCoordinateAux+=buttonWidth;
         }
         xCoordinateAux = 0;
-        for (SecundaryButton button : suggestedWordsButtons) {
+        for (SecondaryButton button : suggestedWordsButtons) {
             button.setPrefSize(buttonWidth, buttonHeight);
             button.setLayoutX(xCoordinateAux);
             xCoordinateAux+=buttonWidth;
         }
         xCoordinateAux = 0;
-        for (SecundaryButton button : recentSecondaryRowButtons) {
+        for (SecondaryButton button : recentSecondaryRowButtons) {
             button.setPrefSize(buttonWidth,buttonHeight);
             button.setLayoutX(xCoordinateAux);
             button.setLayoutY(screenHeight - (2*buttonHeight));
             xCoordinateAux+=buttonWidth;
         }
         xCoordinateAux = 0;
-        for (SecundaryButton button : thirdRowButtons) {
-            button.setPrefSize(buttonWidth, buttonHeight);
-            button.setLayoutX(xCoordinateAux);
-            button.setLayoutY(button.getParentButton().getLayoutY() - (ReverseCrossingButtons.getMargin()*2) - (button.getPrefHeight()/2) - buttonHeight);
+        for (SecondaryButton button : thirdRowButtons) {
+            if(button.getParentButton() != null){
+                button.setPrefSize(buttonWidth, buttonHeight);
+                button.setLayoutX(xCoordinateAux);
+                button.setLayoutY(button.getParentButton().getLayoutY() - (button.getPrefHeight()/2) - buttonHeight);
+            }
             xCoordinateAux+=buttonWidth;
         }
         xCoordinateAux = 0;
-        for (SecundaryButton button : forthRowButtons) {
-            button.setPrefSize(buttonWidth, buttonHeight);
-            button.setLayoutX(xCoordinateAux);
-            button.setLayoutY(button.getParentButton().getLayoutY() - (ReverseCrossingButtons.getMargin()*2) - (button.getPrefHeight()/2) - buttonHeight);
+        for (SecondaryButton button : forthRowButtons) {
+            if(button.getParentButton() != null){
+                button.setPrefSize(buttonWidth, buttonHeight);
+                button.setLayoutX(xCoordinateAux);
+                button.setLayoutY(button.getParentButton().getLayoutY() - (button.getPrefHeight()/2) - buttonHeight);
+            }
             xCoordinateAux+=buttonWidth;
         }
-        for (ReverseCrossingDelete button : deleteOptions)
-            button.refreshSize();
-
-
     }
 
     private void resizeTextAreaContent(){
@@ -412,38 +442,43 @@ public class KeyboardController implements Initializable {
         wordsWritten.setLayoutX(windowDimensions.getWidth()*0.005); //5% left margin
         wordsWritten.setLayoutY(50);
         separator.setEndX(windowDimensions.getWidth());
-        deleteButton.setPrefSize(windowDimensions.getWidth()*0.1, windowDimensions.getHeight()*0.085);
-        deleteButton.setLayoutX(windowDimensions.getWidth()*0.75);
-        deleteButton.setLayoutY(windowDimensions.getHeight()*0.005);
-
-    }
-
-    private void checkReverseCrossing(Button button){
-        deleteButton.setReversing(false);
-        if(openReverse!= null){
-            if(openReverse.isReverseCrossing() && button.equals(openReverse.getParentButton())){
-                String buttonText = button.getText();
-                dataService.incrementTotalAccess();
-                if(button instanceof SecundaryButton secundaryButton){
-                    dataService.incrementGroupAccess(secundaryButton.getGroupName());
-                    if(secundaryButton.getGroupName().equals(GroupNames.WORDS_ROW.getGroupName())){
-                        if(!secundaryButton.getText().equals("")){ //se a palavra não for string vazia
-                            setWrittenWordsText(buttonText, true);
-                            clearAllPopupButtons();
-                        }
-                    }else{
-                        if(buttonText.equals("SPACE")){
-                            setWrittenWordsText(" ", false);
-                        }else{ //todas as letras que não o espaço
-                            setWrittenWordsText(buttonText, false);
-                            updateSuggestedWordsOnReverseCrossing();
-                        }
-                    }
-                }
-                openReverse.setReverseCrossing(false);
-            }
+        int aux = 0;
+        for (SecondaryButton deleteButton : deleteOptions) {
+            deleteButton.setPrefSize(windowDimensions.getWidth()*0.1, windowDimensions.getHeight()*0.085);
+            deleteButton.setLayoutX(aux + (windowDimensions.getWidth()*0.7));
+            deleteButton.setLayoutY(windowDimensions.getHeight()*0.005);
+            aux+= deleteButton.getPrefWidth() + 10;
         }
     }
+
+    /**
+     private void checkReverseCrossing(Button button){
+     deleteButton.setReversing(false);
+     if(openReverse!= null){
+     if(openReverse.isReverseCrossing() && button.equals(openReverse.getParentButton())){
+     String buttonText = button.getText();
+     dataService.incrementTotalAccess();
+     if(button instanceof SecundaryButton secundaryButton){
+     dataService.incrementGroupAccess(secundaryButton.getGroupName());
+     if(secundaryButton.getGroupName().equals(GroupNames.WORDS_ROW.getGroupName())){
+     if(!secundaryButton.getText().equals("")){ //se a palavra não for string vazia
+     setWrittenWordsText(buttonText, true);
+     clearAllPopupButtons();
+     }
+     }else{
+     if(buttonText.equals("SPACE")){
+     setWrittenWordsText(" ", false);
+     }else{ //todas as letras que não o espaço
+     setWrittenWordsText(buttonText, false);
+     updateSuggestedWordsOnReverseCrossing();
+     }
+     }
+     }
+     openReverse.setReverseCrossing(false);
+     }
+     }
+     }  **/
+
 
     private void checkReverseCrossingDelete(DeleteButton button){
         if(button.isReversing()){
@@ -457,18 +492,19 @@ public class KeyboardController implements Initializable {
         }
     }
 
-    private void setWrittenWordsText(String text, boolean word){
-        if(word)
+    private void setWrittenWordsText(String text, boolean isWord){
+        if(isWord)
             wordsWritten.setText(writtingService.addWord(text).stream().map(c -> Character.toString(c)).collect(Collectors.joining())+"|");
         else
             wordsWritten.setText(writtingService.addLetters(text).stream().map(c -> Character.toString(c)).collect(Collectors.joining())+"|");
     }
 
+
     private void updateSuggestedWordsOnReverseCrossing() {
         List<String> suggestedWords = suggestionsService.getSuggestionList(writtingService.getCurrentTypingWord());
         System.out.println(writtingService.getCurrentTypingWord());
         int i = 0;
-        for (SecundaryButton suggestedWordButton : suggestedWordsButtons) {
+        for (SecondaryButton suggestedWordButton : suggestedWordsButtons) {
             if(suggestedWords.size() > i){
                 suggestedWordButton.setText(suggestedWords.get(i));
                 i++;
@@ -478,11 +514,12 @@ public class KeyboardController implements Initializable {
         }
     }
 
-    private void updateSuggestedWordsOnHover(Button button) {
+
+    private void updateSuggestedWordsOnHover(SecondaryButton button) {
         if(!button.getText().equals("SPACE")){
             List<String> suggestedWords = suggestionsService.getSuggestionList(writtingService.getCurrentTypingWord() + button.getText());
             int i = 0;
-            for (SecundaryButton suggestedWordButton : suggestedWordsButtons) {
+            for (SecondaryButton suggestedWordButton : suggestedWordsButtons) {
                 if(suggestedWords.size() > i){
                     suggestedWordButton.setText(suggestedWords.get(i));
                     i++;
