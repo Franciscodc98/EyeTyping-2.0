@@ -31,6 +31,12 @@ import java.util.stream.Collectors;
 @Data
 public class KeyboardController implements Initializable {
 
+    //User data
+    private final String USERNAME = "Francisco C";
+    private final int AGE = 23;
+
+
+
     //Services
     private final SuggestionsService suggestionsService = SuggestionsService.getInstance();
     private final WrittingService writtingService = WrittingService.getInstance();
@@ -69,6 +75,10 @@ public class KeyboardController implements Initializable {
     @FXML
     private AnchorPane rootAnchor;
     private Line separator;
+
+    //split gaze margin
+    private static final double SLIP_MARGIN = 500; //time before updating new suggestions in ms
+    private TimerTask gazeMargin;
 
     //TextArea Variables
     private DisplayTextLabel wordsToWrite;
@@ -125,7 +135,7 @@ public class KeyboardController implements Initializable {
     }
 
     private void setupSuggestedWordButtons(){
-        suggestedWordsButtons = ButtonsUtils.createSuggestedWordButtons(TOTAL_GROUPS, GroupNames.WORDS_ROW);
+        suggestedWordsButtons = ButtonsUtils.createSuggestedWordButtons(TOTAL_GROUPS);
         int xCoordinateAux = 0;
         for (SecondaryButton button : suggestedWordsButtons) {
             button.setPrefSize(buttonWidth, buttonHeight);
@@ -209,8 +219,23 @@ public class KeyboardController implements Initializable {
         updateSuggestionTimer(secondaryButton);
         clearThirdRowButtons();
         clearForthRowButtons();
-        if(!secondaryButton.getText().equals("SPACE"))
+        if(!secondaryButton.getText().equals("SPACE")){
             fillSuggestedWords(secondaryButton, GroupNames.THIRD_ROW.getGroupName());
+        }
+    }
+
+    private void thirdRowButtonsEnterEvent(MouseEvent mouseEvent){
+        SecondaryButton thirdRowButton = (SecondaryButton)(mouseEvent.getSource());
+        startProgress(thirdRowButton);
+        updateSuggestionTimer(thirdRowButton);
+        clearForthRowButtons();
+        fillSuggestedWords(thirdRowButton, GroupNames.FOURTH_ROW.getGroupName());
+    }
+
+    private void fourthRowButtonsEnterEvent(MouseEvent mouseEvent){
+        SecondaryButton fourthRowButton = (SecondaryButton)(mouseEvent.getSource());
+        startProgress(fourthRowButton);
+        updateSuggestionTimer(fourthRowButton);
     }
 
     private void startProgress(SecondaryButton secondaryButton) {
@@ -225,6 +250,7 @@ public class KeyboardController implements Initializable {
                         String buttonText = secondaryButton.getText();
                         if(!secondaryButton.getGroupName().equals("delete")){
                             if(!buttonText.equals("SPACE")){
+                                dataService.incrementGroupAccess(secondaryButton.getGroupName());
                                 if(secondaryButton.getGroupName().equals(GroupNames.WORDS_ROW.getGroupName())){
                                     setWrittenWordsText(buttonText, true);
                                     clearAllPopupButtons();
@@ -250,20 +276,6 @@ public class KeyboardController implements Initializable {
             }
         };
         timer.scheduleAtFixedRate(progressBarProgress, 0, 20); //updates progress Bar every 20ms
-    }
-
-    private void thirdRowButtonsEnterEvent(MouseEvent mouseEvent){
-        SecondaryButton thirdRowButton = (SecondaryButton)(mouseEvent.getSource());
-        startProgress(thirdRowButton);
-        updateSuggestionTimer(thirdRowButton);
-        clearForthRowButtons();
-        fillSuggestedWords(thirdRowButton, GroupNames.FOURTH_ROW.getGroupName());
-    }
-
-    private void fourthRowButtonsEnterEvent(MouseEvent mouseEvent){
-        SecondaryButton fourthRowButton = (SecondaryButton)(mouseEvent.getSource());
-        startProgress(fourthRowButton);
-        updateSuggestionTimer(fourthRowButton);
     }
 
     private void secundaryButtonsExitEvent(MouseEvent mouseEvent){
@@ -385,11 +397,13 @@ public class KeyboardController implements Initializable {
     }
 
     private void clearThirdRowButtons(){
-        thirdRowButtons.forEach((button -> rootAnchor.getChildren().remove(button)));
+        rootAnchor.getChildren().removeAll(thirdRowButtons);
+        //thirdRowButtons.forEach((button -> rootAnchor.getChildren().remove(button)));
     }
 
     private void clearForthRowButtons(){
-        forthRowButtons.forEach((button -> rootAnchor.getChildren().remove(button)));
+        rootAnchor.getChildren().removeAll(forthRowButtons);
+        //forthRowButtons.forEach((button -> rootAnchor.getChildren().remove(button)));
     }
 
     private void resizeButtons(){
@@ -451,69 +465,12 @@ public class KeyboardController implements Initializable {
         }
     }
 
-    /**
-     private void checkReverseCrossing(Button button){
-     deleteButton.setReversing(false);
-     if(openReverse!= null){
-     if(openReverse.isReverseCrossing() && button.equals(openReverse.getParentButton())){
-     String buttonText = button.getText();
-     dataService.incrementTotalAccess();
-     if(button instanceof SecundaryButton secundaryButton){
-     dataService.incrementGroupAccess(secundaryButton.getGroupName());
-     if(secundaryButton.getGroupName().equals(GroupNames.WORDS_ROW.getGroupName())){
-     if(!secundaryButton.getText().equals("")){ //se a palavra não for string vazia
-     setWrittenWordsText(buttonText, true);
-     clearAllPopupButtons();
-     }
-     }else{
-     if(buttonText.equals("SPACE")){
-     setWrittenWordsText(" ", false);
-     }else{ //todas as letras que não o espaço
-     setWrittenWordsText(buttonText, false);
-     updateSuggestedWordsOnReverseCrossing();
-     }
-     }
-     }
-     openReverse.setReverseCrossing(false);
-     }
-     }
-     }  **/
-
-
-    private void checkReverseCrossingDelete(DeleteButton button){
-        if(button.isReversing()){
-            if(button.getAction().equals("letter")){
-                wordsWritten.setText(writtingService.deleteLetter().stream().map(c -> Character.toString(c)).collect(Collectors.joining()));
-                dataService.incrementLetterDeletes();
-            }else{
-                wordsWritten.setText(writtingService.deleteWord().stream().map(c -> Character.toString(c)).collect(Collectors.joining()));
-                dataService.incrementWordDeletes();
-            }
-        }
-    }
-
     private void setWrittenWordsText(String text, boolean isWord){
         if(isWord)
             wordsWritten.setText(writtingService.addWord(text).stream().map(c -> Character.toString(c)).collect(Collectors.joining())+"|");
         else
             wordsWritten.setText(writtingService.addLetters(text).stream().map(c -> Character.toString(c)).collect(Collectors.joining())+"|");
     }
-
-
-    private void updateSuggestedWordsOnReverseCrossing() {
-        List<String> suggestedWords = suggestionsService.getSuggestionList(writtingService.getCurrentTypingWord());
-        System.out.println(writtingService.getCurrentTypingWord());
-        int i = 0;
-        for (SecondaryButton suggestedWordButton : suggestedWordsButtons) {
-            if(suggestedWords.size() > i){
-                suggestedWordButton.setText(suggestedWords.get(i));
-                i++;
-            }else{
-                suggestedWordButton.setText("");
-            }
-        }
-    }
-
 
     private void updateSuggestedWordsOnHover(SecondaryButton button) {
         if(!button.getText().equals("SPACE")){
@@ -562,11 +519,11 @@ public class KeyboardController implements Initializable {
                 if(CONNECT_SERVER)
                     connections.connect("localhost", 3000);
                 dataService.startTimer();
-                wordsToWrite.setText(dataService.getDataset().removeFirst());
-            }else if(event.getCode() == KeyCode.CONTROL && !dataService.getDataset().isEmpty() && !dataService.isFinished()){
-                wordsToWrite.setText(dataService.getDataset().removeFirst());
+                wordsToWrite.setText(dataService.getPhraseFromDataset());
+            }else if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() < 10 && !dataService.isFinished()){
+                wordsToWrite.setText(dataService.getPhraseFromDataset());
                 writtingService.nextPhrase();
-            } else if(event.getCode() == KeyCode.CONTROL && dataService.getDataset().isEmpty() && !dataService.isFinished()){
+            } else if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() == 10 && !dataService.isFinished()){
                 dataService.stopTimer();
                 finished();
             } else if(event.getCode() == KeyCode.BACK_SPACE){
@@ -576,28 +533,25 @@ public class KeyboardController implements Initializable {
     }
 
     private void finished() {
-        if(!dataService.isSaved()){
-            wordsToWrite.setText("Experiment is finished, thank you!");
-            dataService.saveDataToTxt(variableGroups,"Francisco Cardoso", 22, writtingService);
-        }
+        if(!dataService.isSavedTxt())
+            dataService.saveDataToTxt(variableGroups,USERNAME, AGE, writtingService);
+        if(!dataService.isSavedCsv())
+            dataService.saveDataToCsv(variableGroups,USERNAME, AGE, writtingService);
+        //wordsToWrite.setText("Experiment is finished, thank you!");
         if(connections.isRunning())
             connections.setRunning(false);
     }
 
 
     private void mouseMovementEvent(MouseEvent mouseEvent) {
-        if(mouseEvent.getSource() instanceof Button button){
-        }
-
-
-        /**
+        /*
          if(mouseEvent.getSource() instanceof Button button)
          mouseService.updateList(new Position2D((button.getLayoutX() + mouseEvent.getX()), (button.getLayoutY() + mouseEvent.getY())));
          else
          mouseService.updateList(new Position2D(mouseEvent.getX(), mouseEvent.getY()));
          if(mouseService.getLastMouseCoords().isFull())
          refreshNewMouse(mouseService.averagePosition());
-         **/
+         */
     }
 
     public void setupCloneMouse(){

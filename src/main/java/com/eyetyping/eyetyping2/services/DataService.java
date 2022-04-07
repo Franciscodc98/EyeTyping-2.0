@@ -14,7 +14,6 @@ import java.util.*;
 public class DataService{
 
     private static DataService singleton = null;
-    private WrittingService writtingService;
 
     //Timer variables
     private long startTime;
@@ -23,15 +22,18 @@ public class DataService{
     private boolean started = false;
     private boolean finished = false;
 
-    private boolean saved = false;
+    private boolean savedTxt = false;
+    private boolean savedCsv = false;
 
     //Dataset variables
     private final LinkedList<String> dataset = new LinkedList<>();
-    private final HashMap<String, Integer> accessesData = new HashMap<>();
+    private final LinkedList<String> orderedPhrasesUsed = new LinkedList<>();
+    private final LinkedHashMap<String, Integer> accessesData = new LinkedHashMap<>();
 
-    private int totalAccesses = 0;
     private int totalLetterDeletes = 0;
     private int totalWordDeletes = 0;
+
+    private int totalPhrasesRetrieved = 0;
 
     private DataService(){
         loadDataset();
@@ -52,19 +54,20 @@ public class DataService{
         }
     }
 
-
-
+    public String getPhraseFromDataset(){
+        Random r = new Random();
+        if(!dataset.isEmpty()) {
+            String phrase = dataset.remove(r.nextInt(dataset.size()));
+            orderedPhrasesUsed.add(phrase);
+            totalPhrasesRetrieved+=1;
+            return phrase;
+        }
+        throw new NoSuchElementException("Phrase dataset is empty");
+    }
 
     public void incrementGroupAccess(String groupName){
         accessesData.put(groupName, accessesData.get(groupName) + 1);
-    }
-
-    public void decrementGroupAccess(String groupName){
-        accessesData.put(groupName, accessesData.get(groupName) - 1);
-    }
-
-    public void incrementTotalAccess(){
-        totalAccesses++;
+        System.out.println("Incremented: " + groupName);
     }
 
     public void incrementLetterDeletes() {
@@ -100,19 +103,23 @@ public class DataService{
     }
 
     public void saveDataToTxt(VariableGroups layoutVariable, String userName, int age, WrittingService writtingService) {
-        this.writtingService = writtingService;
         try(FileWriter fileWriter = new FileWriter("FirstBatch_" + layoutVariable + "_" + userName)){
 
-            fileWriter.WritePhrase("User: " + userName + ", age: " + age + " years old.");
-            fileWriter.WritePhrase("Total time: " + getTimeElapsed() + "ms");
-            fileWriter.WritePhrase("Total words written: " + writtingService.getTotalWordsWritten());
-            fileWriter.WritePhrase("Total accesses: " + totalAccesses);
-            fileWriter.WritePhrase("Total deletions: " + totalLetterDeletes);
+            fileWriter.writePhrase("User: " + userName + ", age: " + age + " years old.");
+            fileWriter.writePhrase("Total time: " + getTimeElapsed() + "ms");
+            fileWriter.writePhrase("Total words written: " + writtingService.getTotalWordsWritten());
+            fileWriter.writePhrase("Total words deletions: " + totalWordDeletes);
+            fileWriter.writePhrase("Total letter deletions: " + totalLetterDeletes);
             accessesData.forEach((groupName, count) -> {
-                fileWriter.WritePhrase(groupName + ": " + count);
+                fileWriter.writePhrase(groupName + ": " + count);
             });
-            writtingService.getWrittenPhrases().forEach(fileWriter::WritePhrase);
-            saved = true;
+            List<String> writtenPhrases = writtingService.getWrittenPhrases();
+            for(int i = 0; i < writtenPhrases.size(); i++) {
+                fileWriter.writePhrase(orderedPhrasesUsed.get(i));
+                fileWriter.writePhrase(writtenPhrases.get(i));
+            }
+            //writtingService.getWrittenPhrases().forEach(fileWriter::writePhrase);
+            savedTxt = true;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -120,21 +127,43 @@ public class DataService{
     }
 
     public void saveDataToCsv(VariableGroups layoutVariable, String userName, int age, WrittingService writtingService){
-        this.writtingService = writtingService;
-
+        try(FileWriter writer = new FileWriter("src/main/resources/DwellTimeData.csv")){
+            if(writer.isFileEmpty()){
+                writer.writeDataFromListToCsv(Arrays.stream(getCsvHeader()).toList());
+            }
+                writer.writeDataFromListToCsv(dataToSave(layoutVariable, userName, age, writtingService));
+            savedCsv = true;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
 
     }
 
     private String [] getCsvHeader(){
-        String headerAux = "First Name, Last Name, Layout, Total Time, Total words written, Total accesses, Total deletions";
+        String headerAux = "First Name, Age, Layout, Total Time(ms), Total words written, Total accesses, Total word deletions, Total letter deletions";
         String[] both = Arrays.copyOf(headerAux.split(", "), headerAux.split(", ").length + accessesData.keySet().toArray(new String[0]).length);
         System.arraycopy(accessesData.keySet().toArray(new String[0]), 0, both, headerAux.split(", ").length, accessesData.keySet().toArray(new String[0]).length);
         return both;
+    }
+
+    private List<String> dataToSave(VariableGroups layoutVariable, String userName, int age, WrittingService writtingService){
+        List<String> data = new ArrayList<>();
+        data.add(userName);
+        data.add(String.valueOf(age));
+        data.add(layoutVariable.getVariableGroupName());
+        data.add(String.valueOf(getTimeElapsed()));
+        data.add(String.valueOf(writtingService.getTotalWordsWritten()));
+        data.add(String.valueOf(totalWordDeletes));
+        data.add(String.valueOf(totalLetterDeletes));
+        accessesData.forEach((k, v) -> data.add(String.valueOf(v)));
+        return data;
     }
 
     public static void main(String[] args) {
         DataService dataService = DataService.getInstance();
         Arrays.stream(dataService.getCsvHeader()).iterator().forEachRemaining(System.out::println);
     }
+
+
 
 }
