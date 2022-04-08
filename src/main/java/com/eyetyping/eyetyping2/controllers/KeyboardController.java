@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 public class KeyboardController implements Initializable {
 
     //User data
-    private final String USERNAME = "Francisco C";
+    private final String USERNAME = "Francisco Cardoso";
     private final int AGE = 23;
 
 
