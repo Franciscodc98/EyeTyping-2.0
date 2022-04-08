@@ -140,7 +140,7 @@ public class DataService{
     }
 
     private String [] getCsvHeader(){
-        String headerAux = "First Name, Age, Layout, Total Time(ms), Total words written, Total accesses, Total word deletions, Total letter deletions";
+        String headerAux = "First Name, Age, Layout, Total Time(ms), Total words written, Total word deletions, Total letter deletions";
         String[] both = Arrays.copyOf(headerAux.split(", "), headerAux.split(", ").length + accessesData.keySet().toArray(new String[0]).length);
         System.arraycopy(accessesData.keySet().toArray(new String[0]), 0, both, headerAux.split(", ").length, accessesData.keySet().toArray(new String[0]).length);
         return both;

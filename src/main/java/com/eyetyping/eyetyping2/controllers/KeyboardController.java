@@ -89,6 +89,13 @@ public class KeyboardController implements Initializable {
     private Timer timer = new Timer();
     private TimerTask progressBarProgress;
     private double progressTimerAux = 0;
+    private TimerTask timeout = new TimerTask() {
+        @Override
+        public void run() {
+            dataService.timerFinished(TIME);
+            Platform.runLater(() -> finished());
+        }
+    };
 
     //mouse
 
@@ -249,8 +256,8 @@ public class KeyboardController implements Initializable {
                     } else{
                         String buttonText = secondaryButton.getText();
                         if(!secondaryButton.getGroupName().equals("delete")){
+                            dataService.incrementGroupAccess(secondaryButton.getGroupName());
                             if(!buttonText.equals("SPACE")){
-                                dataService.incrementGroupAccess(secondaryButton.getGroupName());
                                 if(secondaryButton.getGroupName().equals(GroupNames.WORDS_ROW.getGroupName())){
                                     setWrittenWordsText(buttonText, true);
                                     clearAllPopupButtons();
@@ -509,13 +516,7 @@ public class KeyboardController implements Initializable {
     public void setKeyListener() {
         mainScene.setOnKeyPressed(event -> {
             if(event.getCode() == KeyCode.CONTROL && !dataService.isStarted() && !dataService.isFinished()){
-                new Timer().schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        dataService.timerFinished(TIME);
-                        Platform.runLater(() -> finished());
-                    }
-                }, TIME * 60 *1000);
+                timer.schedule(timeout, TIME * 60 *1000);
                 if(CONNECT_SERVER)
                     connections.connect("localhost", 3000);
                 dataService.startTimer();
@@ -523,6 +524,7 @@ public class KeyboardController implements Initializable {
             }else if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() < 10 && !dataService.isFinished()){
                 wordsToWrite.setText(dataService.getPhraseFromDataset());
                 writtingService.nextPhrase();
+                wordsWritten.setText("");
             } else if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() == 10 && !dataService.isFinished()){
                 dataService.stopTimer();
                 finished();
