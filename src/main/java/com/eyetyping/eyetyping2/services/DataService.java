@@ -103,7 +103,7 @@ public class DataService{
     }
 
     public void saveDataToTxt(VariableGroups layoutVariable, String userName, int age, WrittingService writtingService) {
-        try(FileWriter fileWriter = new FileWriter("FirstBatch_" + layoutVariable + "_" + userName)){
+        try(FileWriter fileWriter = new FileWriter("FirstBatch_" + layoutVariable + "_" + userName, false)){
 
             fileWriter.writePhrase("User: " + userName + ", age: " + age + " years old.");
             fileWriter.writePhrase("Total time: " + getTimeElapsed() + "ms");
@@ -127,7 +127,7 @@ public class DataService{
     }
 
     public void saveDataToCsv(VariableGroups layoutVariable, String userName, int age, WrittingService writtingService){
-        try(FileWriter writer = new FileWriter("src/main/resources/ReverseCrossingData.csv")){
+        try(FileWriter writer = new FileWriter("src/main/resources/ReverseCrossingData.csv", true)){
             if(writer.isFileEmpty()){
                 writer.writeDataFromListToCsv(Arrays.stream(getCsvHeader()).toList());
             }
