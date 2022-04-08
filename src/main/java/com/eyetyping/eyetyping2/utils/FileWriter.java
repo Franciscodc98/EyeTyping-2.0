@@ -11,9 +11,9 @@ public class FileWriter implements Closeable {
 	private PrintWriter pw;
 	private File file;
 
-	public FileWriter(String fileName) throws FileNotFoundException {
+	public FileWriter(String fileName, boolean append) throws FileNotFoundException {
 		file = new File(fileName);
-		this.pw = new PrintWriter(new FileOutputStream(file, true));
+		this.pw = new PrintWriter(new FileOutputStream(file, append));
 	}
 
 	public void writePhrase(String phrase){
