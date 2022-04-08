@@ -17,4 +17,3 @@ buildNumber.properties
 .classpath
 .idea/
 .idea
-src/main/resources/ReverseCrossingData.csv
