@@ -32,7 +32,7 @@ public class KeyboardController implements Initializable {
 
     //User information
     //User data
-    private final String USERNAME = "Francisco Card";
+    private final String USERNAME = "Francisco Cardoso";
     private final int AGE = 23;
     private final VariableGroups GROUP_VARIABLE = VariableGroups.MEDIUM_GROUPS;
 
