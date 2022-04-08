@@ -37,7 +37,7 @@ public class ButtonsUtils {
         HashMap<String, SecundaryButton> alphabet = new HashMap<>();
         for (char c: subButtons.toCharArray()) {
             SecundaryButton button = new SecundaryButton( c!= ' ' ? Character.toString(c) : "SPACE");
-            button.setGroupName("firstRow");
+            button.setGroupName(GroupNames.SECOND_ROW.getGroupName());
             button.setOnMouseEntered(enterMouse::accept); //adicionar a funcao listener
             button.setOnMouseMoved(moveMouse::accept);
             button.setOnMouseExited(exitMouse::accept);
@@ -47,11 +47,11 @@ public class ButtonsUtils {
     }
 
 
-    public static List<SecundaryButton> createSuggestedWordButtons(int numberOfButtons, GroupNames groupNames){
+    public static List<SecundaryButton> createSuggestedWordButtons(int numberOfButtons){
         List<SecundaryButton> buttons = new ArrayList<>();
         for (int i = 0; i < numberOfButtons; i++){
             SecundaryButton button = new SecundaryButton("Word " + (i+1));
-            button.setGroupName(groupNames.getGroupName());
+            button.setGroupName(GroupNames.WORDS_ROW.getGroupName());
             buttons.add(button);
         }
         return buttons;

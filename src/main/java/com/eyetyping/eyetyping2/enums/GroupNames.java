@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 public enum GroupNames {
 
-    GROUP_ROW("groupRow"), FIRST_ROW("firstRow"), SECOND_ROW("secondRow"), THIRD_ROW("thirdRow"), FOURTH_ROW("fourthRow"), WORDS_ROW("wordsRow");
+    SECOND_ROW("secondRow"), THIRD_ROW("thirdRow"), FOURTH_ROW("fourthRow"), WORDS_ROW("wordsRow");
 
     private final String groupName;
 }

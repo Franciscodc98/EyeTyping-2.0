@@ -30,6 +30,12 @@ import java.util.stream.Collectors;
 @Data
 public class KeyboardController implements Initializable {
 
+    //User information
+    //User data
+    private final String USERNAME = "Francisco Card";
+    private final int AGE = 23;
+    private final VariableGroups GROUP_VARIABLE = VariableGroups.MEDIUM_GROUPS;
+
     //Services
     private final SuggestionsService suggestionsService = SuggestionsService.getInstance();
     private final WrittingService writtingService = WrittingService.getInstance();
@@ -76,12 +82,19 @@ public class KeyboardController implements Initializable {
     private DisplayTextLabel wordsToWrite;
     private TextWrittenLabel wordsWritten;
 
-    //mouse
+    Timer timer = new Timer();
+    private TimerTask timeout = new TimerTask() {
+        @Override
+        public void run() {
+            dataService.timerFinished(TIME);
+            Platform.runLater(() -> finished());
+        }
+    };
 
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        calculateGroupsSize(VariableGroups.MEDIUM_GROUPS); //Alterar isto para os diferentes tipos de layout
+        calculateGroupsSize(GROUP_VARIABLE); //Alterar isto para os diferentes tipos de layout
         setupButtons();
         addRootAnchorListeners();
         mouseService.setKeyboardController(this);
@@ -121,7 +134,7 @@ public class KeyboardController implements Initializable {
     }
 
     private void setupSuggestedWordButtons(){
-        suggestedWordsButtons = ButtonsUtils.createSuggestedWordButtons(TOTAL_GROUPS, GroupNames.WORDS_ROW);
+        suggestedWordsButtons = ButtonsUtils.createSuggestedWordButtons(TOTAL_GROUPS);
         int xCoordinateAux = 0;
         for (SecundaryButton button : suggestedWordsButtons) {
             button.setPrefSize(buttonWidth, buttonHeight);
@@ -355,11 +368,11 @@ public class KeyboardController implements Initializable {
     }
 
     private void clearThirdRowButtons(){
-        thirdRowButtons.forEach((button -> rootAnchor.getChildren().remove(button)));
+        rootAnchor.getChildren().removeAll(thirdRowButtons);
     }
 
     private void clearForthRowButtons(){
-        forthRowButtons.forEach((button -> rootAnchor.getChildren().remove(button)));
+        rootAnchor.getChildren().removeAll(forthRowButtons);
     }
 
     private void resizeButtons(){
@@ -423,7 +436,6 @@ public class KeyboardController implements Initializable {
         if(openReverse!= null){
             if(openReverse.isReverseCrossing() && button.equals(openReverse.getParentButton())){
                 String buttonText = button.getText();
-                dataService.incrementTotalAccess();
                 if(button instanceof SecundaryButton secundaryButton){
                     dataService.incrementGroupAccess(secundaryButton.getGroupName());
                     if(secundaryButton.getGroupName().equals(GroupNames.WORDS_ROW.getGroupName())){
@@ -515,21 +527,17 @@ public class KeyboardController implements Initializable {
     public void setKeyListener() {
         mainScene.setOnKeyPressed(event -> {
             if(event.getCode() == KeyCode.CONTROL && !dataService.isStarted() && !dataService.isFinished()){
-                new Timer().schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        dataService.timerFinished(TIME);
-                        Platform.runLater(() -> finished());
-                    }
-                }, TIME * 60 *1000);
+                timer.schedule(timeout, TIME * 60 *1000);
                 if(CONNECT_SERVER)
                     connections.connect("localhost", 3000);
                 dataService.startTimer();
-                wordsToWrite.setText(dataService.getDataset().removeFirst());
-            }else if(event.getCode() == KeyCode.CONTROL && !dataService.getDataset().isEmpty() && !dataService.isFinished()){
-                wordsToWrite.setText(dataService.getDataset().removeFirst());
+                wordsToWrite.setText(dataService.getPhraseFromDataset());
+            }else if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() < 10 && !dataService.isFinished()){
+                wordsToWrite.setText(dataService.getPhraseFromDataset());
                 writtingService.nextPhrase();
-            } else if(event.getCode() == KeyCode.CONTROL && dataService.getDataset().isEmpty() && !dataService.isFinished()){
+                wordsWritten.setText("");
+            } else if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() == 10 && !dataService.isFinished()){
+                timeout.cancel();
                 dataService.stopTimer();
                 finished();
             } else if(event.getCode() == KeyCode.BACK_SPACE){
@@ -539,10 +547,10 @@ public class KeyboardController implements Initializable {
     }
 
     private void finished() {
-        if(!dataService.isSaved()){
-            wordsToWrite.setText("Experiment is finished, thank you!");
-            dataService.saveDataToTxt(variableGroups,"Francisco Cardoso", 22, writtingService);
-        }
+        if(!dataService.isSavedTxt())
+            dataService.saveDataToTxt(variableGroups,USERNAME, AGE, writtingService);
+        if(!dataService.isSavedCsv())
+            dataService.saveDataToCsv(variableGroups,USERNAME, AGE, writtingService);
         if(connections.isRunning())
             connections.setRunning(false);
     }

@@ -21,6 +21,7 @@ public class StartApplication extends Application {
         controller.setMainScene(scene);
         controller.setKeyListener();
         controller.setupCloneMouse();
+        stage.setOnCloseRequest(event ->System.exit(0));
         stage.show();
     }
 
