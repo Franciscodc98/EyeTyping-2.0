@@ -4,6 +4,8 @@ public class GlobalVariables {
 
     private GlobalVariables(){}
 
+    //public static final int BUTTON_TEXT_SIZE = 40;
+
 
     public static final String PHRASES_PATH = "src/main/resources/TestingPhrasesDataset.txt";
 

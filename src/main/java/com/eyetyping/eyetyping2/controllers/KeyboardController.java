@@ -52,6 +52,7 @@ public class KeyboardController implements Initializable {
     private int TOTAL_GROUPS;
     private int TOTAL_SECUNDARY_GROUPS;
     private int TOTAL_BUTTONS_PER_ROW;
+    private int SIDE_MARGIN = 50;
     private VariableGroups variableGroups = null;
     private List<SecondaryButton> suggestedWordsButtons = new ArrayList<>();
     private List<GroupButton> groupsButtonList = new ArrayList<>();
@@ -213,10 +214,11 @@ public class KeyboardController implements Initializable {
                 button.setPrefSize(buttonWidth, buttonHeight);
                 button.setLayoutX(widthAux);
                 button.setLayoutY(screenHeight- (2*buttonHeight));
-                rootAnchor.getChildren().add(button);
                 widthAux+=buttonWidth;
             }
+            rootAnchor.getChildren().addAll(recentSecondaryRowButtons);
             focussedGroup = groupString;
+            resizeButtons();
         }
     }
 
@@ -414,27 +416,27 @@ public class KeyboardController implements Initializable {
     }
 
     private void resizeButtons(){
-        int xCoordinateAux = 0;
+        int xCoordinateAux = SIDE_MARGIN;
         for (Button button : groupsButtonList) {
             button.setPrefSize(buttonWidth,buttonHeight);
             button.setLayoutX(xCoordinateAux);
             button.setLayoutY(screenHeight-buttonHeight);
             xCoordinateAux+=buttonWidth;
         }
-        xCoordinateAux = 0;
+        xCoordinateAux = SIDE_MARGIN;
         for (SecondaryButton button : suggestedWordsButtons) {
             button.setPrefSize(buttonWidth, buttonHeight);
             button.setLayoutX(xCoordinateAux);
             xCoordinateAux+=buttonWidth;
         }
-        xCoordinateAux = 0;
+        xCoordinateAux = SIDE_MARGIN;
         for (SecondaryButton button : recentSecondaryRowButtons) {
             button.setPrefSize(buttonWidth,buttonHeight);
             button.setLayoutX(xCoordinateAux);
             button.setLayoutY(screenHeight - (2*buttonHeight));
             xCoordinateAux+=buttonWidth;
         }
-        xCoordinateAux = 0;
+        xCoordinateAux = SIDE_MARGIN;
         for (SecondaryButton button : thirdRowButtons) {
             if(button.getParentButton() != null){
                 button.setPrefSize(buttonWidth, buttonHeight);
@@ -443,7 +445,7 @@ public class KeyboardController implements Initializable {
             }
             xCoordinateAux+=buttonWidth;
         }
-        xCoordinateAux = 0;
+        xCoordinateAux = SIDE_MARGIN;
         for (SecondaryButton button : forthRowButtons) {
             if(button.getParentButton() != null){
                 button.setPrefSize(buttonWidth, buttonHeight);
@@ -505,7 +507,7 @@ public class KeyboardController implements Initializable {
         });
         rootAnchor.widthProperty().addListener((observable, oldValue, newValue) -> {
             screenWidth = newValue.doubleValue();
-            buttonWidth = screenWidth/TOTAL_GROUPS;
+            buttonWidth = (screenWidth - 2 * SIDE_MARGIN)/TOTAL_GROUPS;
             windowDimensions.setWidth(newValue.doubleValue());
             resizeTextAreaContent();
             resizeButtons();
@@ -546,14 +548,12 @@ public class KeyboardController implements Initializable {
 
 
     private void mouseMovementEvent(MouseEvent mouseEvent) {
-        /*
-         if(mouseEvent.getSource() instanceof Button button)
-         mouseService.updateList(new Position2D((button.getLayoutX() + mouseEvent.getX()), (button.getLayoutY() + mouseEvent.getY())));
-         else
-         mouseService.updateList(new Position2D(mouseEvent.getX(), mouseEvent.getY()));
-         if(mouseService.getLastMouseCoords().isFull())
-         refreshNewMouse(mouseService.averagePosition());
-         */
+        Position2D actualMousePos = new Position2D(mouseEvent);
+
+        if(mouseEvent.getX() < SIDE_MARGIN)
+            refreshNewMouse(new Position2D(SIDE_MARGIN, actualMousePos.getY()));
+        if(mouseEvent.getX() > windowDimensions.getWidth() - SIDE_MARGIN)
+            refreshNewMouse(new Position2D(windowDimensions.getWidth() - SIDE_MARGIN, actualMousePos.getY()));
     }
 
     public void setupCloneMouse(){
@@ -563,6 +563,11 @@ public class KeyboardController implements Initializable {
 
     public void refreshNewMouse(Position2D pos) {
         new Robot().mouseMove(pos.getX(), pos.getY());
+    }
+
+    public void setMainScene(Scene scene){
+        mainScene = scene;
+        scene.setOnMouseMoved(this::mouseMovementEvent);
     }
 
     public static void main(String[] args) {

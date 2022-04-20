@@ -67,7 +67,6 @@ public class DataService{
 
     public void incrementGroupAccess(String groupName){
         accessesData.put(groupName, accessesData.get(groupName) + 1);
-        System.out.println("Incremented: " + groupName);
     }
 
     public void incrementLetterDeletes() {
