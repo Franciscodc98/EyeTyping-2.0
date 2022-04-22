@@ -69,14 +69,14 @@ public class StringUtils {
                     case 0: return "ABCDEFGHI";
                     case 1: return "JKLMNOPQR";
                     case 2: return "STUVWXYZ";
-                    case 4: return "!?., ";
+                    case 4: return "!?.,";
                 }
                 case 5: switch (groupIndex){
                     case 0: return "ABCDEFG";
                     case 1: return "HIJKLMN";
                     case 2: return "OPQRST";
                     case 3: return "UVWXYZ";
-                    case 4: return "!?., ";
+                    case 4: return "!?.,";
                 }
                 case 6: switch (groupIndex){
                     case 0: return "ABCDEF";
@@ -84,7 +84,7 @@ public class StringUtils {
                     case 2: return "LMNOP";
                     case 3: return "QRSTU";
                     case 4: return "VWXYZ";
-                    case 5: return "!?., ";
+                    case 5: return "!?.,";
                 }
                 case 7: switch (groupIndex){
                     case 0: return "ABCDE";
@@ -93,7 +93,7 @@ public class StringUtils {
                     case 3: return "OPQR";
                     case 4: return "STUV";
                     case 5: return "WXYZ";
-                    case 6: return "!?., ";
+                    case 6: return "!?.,";
                 }
                 case 8: switch (groupIndex){
                     case 0: return "ABCD";

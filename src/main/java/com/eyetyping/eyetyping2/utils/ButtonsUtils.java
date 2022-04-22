@@ -9,6 +9,7 @@ import javafx.scene.input.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class ButtonsUtils {
@@ -33,7 +34,7 @@ public class ButtonsUtils {
     }
 
 
-    public static HashMap<String, SecondaryButton> createAlphabetButtons(String subButtons, Consumer<MouseEvent> enterMouse, Consumer<MouseEvent> moveMouse, Consumer<MouseEvent> exitMouse) {
+    public static Map<String, SecondaryButton> createAlphabetButtons(String subButtons, Consumer<MouseEvent> enterMouse, Consumer<MouseEvent> moveMouse, Consumer<MouseEvent> exitMouse) {
         HashMap<String, SecondaryButton> alphabet = new HashMap<>();
         for (char c: subButtons.toCharArray()) {
             SecondaryButton button = SecondaryButton.asRoot( c!= ' ' ? Character.toString(c) : "SPACE");
