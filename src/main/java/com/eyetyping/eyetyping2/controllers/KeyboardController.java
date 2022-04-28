@@ -136,7 +136,7 @@ public class KeyboardController implements Initializable {
             widthAux+=buttonWidth;
         }
         rootAnchor.getChildren().addAll(groupsButtonList);
-        groupsButtonList.forEach((button -> alphabetButtons.putAll(ButtonsUtils.createAlphabetButtons(button.getText(), this::secundaryButtonsEnterEvent, this::buttonsExitEvent))));
+        groupsButtonList.forEach((button -> alphabetButtons.putAll(ButtonsUtils.createAlphabetButtons(button.getText(), this::secondaryButtonsEnterEvent, this::buttonsExitEvent))));
     }
 
     private void setupSuggestedWordButtons(){
@@ -210,7 +210,7 @@ public class KeyboardController implements Initializable {
                     });
                     focussedButton.setFocussed(true);
                     if(!recentSecondaryRowButtons.isEmpty())
-                        clearSecundaryButtons();
+                        clearSecondaryButtons();
                     for (char c: groupString.toCharArray()) {
                         recentSecondaryRowButtons.add(alphabetButtons.get(Character.toString(c)));
                     }
@@ -231,7 +231,7 @@ public class KeyboardController implements Initializable {
         clearForthRowButtons();
     }
 
-    private void secundaryButtonsEnterEvent(MouseEvent mouseEvent){
+    private void secondaryButtonsEnterEvent(MouseEvent mouseEvent){
         SecondaryButton secondaryButton = (SecondaryButton)(mouseEvent.getSource());
         startProgress(secondaryButton);
         updateSuggestionTimer(secondaryButton);
@@ -381,7 +381,7 @@ public class KeyboardController implements Initializable {
                 );
 
             }
-        }, SLIP_MARGIN-75);
+        }, SLIP_MARGIN-100);
 
     }
 
@@ -420,12 +420,12 @@ public class KeyboardController implements Initializable {
     }
 
     private void clearAllPopupButtons(){
-        clearSecundaryButtons();
+        clearSecondaryButtons();
         clearThirdRowButtons();
         clearForthRowButtons();
     }
 
-    private void clearSecundaryButtons(){
+    private void clearSecondaryButtons(){
         rootAnchor.getChildren().removeAll(recentSecondaryRowButtons);
         recentSecondaryRowButtons.clear();
     }
