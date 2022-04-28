@@ -27,8 +27,7 @@ public class SecondaryButton extends StackPane {
         progressBar = new ProgressBar(0);
         setListeners();
         addContent();
-        loadCss();
-        setButtonColorGreen(false);
+        getStyleClass().add("secundary-button");
     }
 
     public static SecondaryButton asRoot(String text){
@@ -40,8 +39,8 @@ public class SecondaryButton extends StackPane {
     }
 
     private void addContent(){
-        super.getChildren().add(progressBar);
-        super.getChildren().add(label);
+        getChildren().add(progressBar);
+        getChildren().add(label);
     }
 
     private void setListeners(){
@@ -61,13 +60,6 @@ public class SecondaryButton extends StackPane {
         return label.getText();
     }
 
-    private void loadCss(){
-        String resource = Objects.requireNonNull(getClass().getResource("/css/mainCss.css")).toExternalForm();
-        if(resource!= null){
-            getStylesheets().add(resource);
-            getStyleClass().add("secundary-button");
-        }
-    }
 
     private void setButtonColorGreen(boolean setGreen){
         if (setGreen){
@@ -80,11 +72,13 @@ public class SecondaryButton extends StackPane {
     public void setFocussed(boolean focussed){
         if(focussed)
             setStyle("""
+                      -fx-font-size:25;
                       -fx-border-color:black;
                       -fx-border-width: 3 3 3 3;
                     """);
         else
             setStyle("""
+                       -fx-font-size:20;
                        -fx-border-color:black;
                        -fx-border-width: 1 1 1 1;
                     """);

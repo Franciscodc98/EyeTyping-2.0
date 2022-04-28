@@ -34,13 +34,12 @@ public class ButtonsUtils {
     }
 
 
-    public static Map<String, SecondaryButton> createAlphabetButtons(String subButtons, Consumer<MouseEvent> enterMouse, Consumer<MouseEvent> moveMouse, Consumer<MouseEvent> exitMouse) {
+    public static Map<String, SecondaryButton> createAlphabetButtons(String subButtons, Consumer<MouseEvent> enterMouse, Consumer<MouseEvent> exitMouse) {
         HashMap<String, SecondaryButton> alphabet = new HashMap<>();
         for (char c: subButtons.toCharArray()) {
             SecondaryButton button = SecondaryButton.asRoot( c!= ' ' ? Character.toString(c) : "SPACE");
             button.setGroupName(GroupNames.SECOND_ROW.getGroupName());
             button.setOnMouseEntered(enterMouse::accept); //adicionar a funcao listener
-            button.setOnMouseMoved(moveMouse::accept);
             button.setOnMouseExited(exitMouse::accept);
             alphabet.put(Character.toString(c), button);
         }

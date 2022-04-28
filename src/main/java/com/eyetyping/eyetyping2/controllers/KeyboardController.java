@@ -85,7 +85,7 @@ public class KeyboardController implements Initializable {
     private TextWrittenLabel wordsWritten;
 
     //dwell time
-    private static final double DWELL_TIME = 1000; //dwell time for selection in ms
+    private static final double DWELL_TIME = 800; //dwell time for selection in ms
     private Timer timer = new Timer();
     private TimerTask progressBarProgress;
     private TimerTask slipMargin;
@@ -132,12 +132,11 @@ public class KeyboardController implements Initializable {
             button.setLayoutX(widthAux);
             button.setLayoutY(screenHeight-buttonHeight);
             button.setOnMouseEntered(this::groupsButtonEnterEvent);
-            button.setOnMouseMoved(this::mouseMovementEvent);
             button.setOnMouseExited(this::groupButtonExitEvent);
             widthAux+=buttonWidth;
         }
         rootAnchor.getChildren().addAll(groupsButtonList);
-        groupsButtonList.forEach((button -> alphabetButtons.putAll(ButtonsUtils.createAlphabetButtons(button.getText(), this::secundaryButtonsEnterEvent, this::mouseMovementEvent, this::buttonsExitEvent))));
+        groupsButtonList.forEach((button -> alphabetButtons.putAll(ButtonsUtils.createAlphabetButtons(button.getText(), this::secundaryButtonsEnterEvent, this::buttonsExitEvent))));
     }
 
     private void setupSuggestedWordButtons(){
@@ -148,7 +147,6 @@ public class KeyboardController implements Initializable {
             button.setLayoutX(xCoordinateAux);
             button.setLayoutY(separator.getStartY());
             button.setOnMouseEntered(this::suggestedWordEnterEvent);
-            button.setOnMouseMoved(this::mouseMovementEvent);
             button.setOnMouseExited(this::suggestedWordsExitEvent);
             xCoordinateAux+=buttonWidth;
         }
@@ -160,7 +158,6 @@ public class KeyboardController implements Initializable {
         for (SecondaryButton button : thirdRowButtons) {
             button.setPrefSize(buttonWidth, buttonHeight);
             button.setOnMouseEntered(this::thirdRowButtonsEnterEvent);
-            button.setOnMouseMoved(this::mouseMovementEvent);
             button.setOnMouseExited(this::buttonsExitEvent);
         }
     }
@@ -170,7 +167,6 @@ public class KeyboardController implements Initializable {
         for (SecondaryButton button : forthRowButtons) {
             button.setPrefSize(buttonWidth, buttonHeight);
             button.setOnMouseEntered(this::fourthRowButtonsEnterEvent);
-            button.setOnMouseMoved(this::mouseMovementEvent);
             button.setOnMouseExited(this::buttonsExitEvent);
         }
     }
@@ -578,27 +574,12 @@ public class KeyboardController implements Initializable {
     }
 
 
-    private void mouseMovementEvent(MouseEvent mouseEvent) {
-        //Position2D actualMousePos = new Position2D(mouseEvent);
-        /*
-        if(mouseEvent.getX() < SIDE_MARGIN)
-            refreshNewMouse(new Position2D(SIDE_MARGIN, actualMousePos.getY()));
-        if(mouseEvent.getX() > windowDimensions.getWidth() - SIDE_MARGIN)
-            refreshNewMouse(new Position2D(windowDimensions.getWidth() - SIDE_MARGIN, actualMousePos.getY()));
-         */
-    }
-
-
     public void refreshNewMouse(Position2D pos) {
         new Robot().mouseMove(pos.getX(), pos.getY());
     }
 
     public void setMainScene(Scene scene){
         mainScene = scene;
-        //scene.setOnMouseMoved(this::mouseMovementEvent);
     }
 
-    public static void main(String[] args) {
-        // TODO document why this method is empty
-    }
 }
