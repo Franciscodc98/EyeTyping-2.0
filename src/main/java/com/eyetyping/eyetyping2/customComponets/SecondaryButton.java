@@ -10,22 +10,38 @@ import java.util.TimerTask;
 
 @Getter
 @Setter
-public class DeleteButton extends Button {
+public class SecondaryButton extends Button {
 
-    private String action = "";
-    private boolean reversing = false;
+    private Button parentButton;
+    private String groupName;
     private boolean inFocus = false;
 
-    public DeleteButton(){
-        super("delete");
+    public SecondaryButton(String text){
+        super(text);
+        parentButton = new Button();
+        getStyleClass().add("secondary-button");
+    }
+
+    public SecondaryButton(){
+        parentButton = new Button();
         getStyleClass().add("secondary-button");
     }
 
     private void setButtonColorGreen(boolean setGreen){
         if (setGreen){
-            setStyle("-fx-background-color: palegreen;");
+            setStyle("""
+                      -fx-font-size:25;
+                      -fx-border-color:black;
+                      -fx-border-width: 3 3 3 3;
+                      -fx-background-color: palegreen;
+                    """);
         }else{
-            setStyle("-fx-background-colo: white;");
+            setStyle("""
+                      -fx-font-size:25;
+                      -fx-border-color:black;
+                      -fx-border-width: 3 3 3 3;
+                      -fx-background-colo: white;
+                    """);
         }
     }
 
@@ -55,7 +71,6 @@ public class DeleteButton extends Button {
             }
         }, 500);
     }
-
 
 
 }

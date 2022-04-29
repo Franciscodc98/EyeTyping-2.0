@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.Objects;
 
 public class StartApplication extends Application {
 
@@ -20,7 +21,7 @@ public class StartApplication extends Application {
         KeyboardController controller = fxmlLoader.getController();
         controller.setMainScene(scene);
         controller.setKeyListener();
-        controller.setupCloneMouse();
+        scene.getStylesheets().add(Objects.requireNonNull(StartApplication.class.getResource("/css/mainCss.css")).toExternalForm());
         stage.setOnCloseRequest(event ->System.exit(0));
         stage.show();
     }

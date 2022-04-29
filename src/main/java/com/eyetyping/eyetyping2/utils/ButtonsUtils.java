@@ -1,7 +1,7 @@
 package com.eyetyping.eyetyping2.utils;
 
 import com.eyetyping.eyetyping2.customComponets.GroupButton;
-import com.eyetyping.eyetyping2.customComponets.SecundaryButton;
+import com.eyetyping.eyetyping2.customComponets.SecondaryButton;
 import com.eyetyping.eyetyping2.enums.GroupNames;
 import com.eyetyping.eyetyping2.enums.VariableGroups;
 import javafx.scene.input.MouseEvent;
@@ -33,13 +33,12 @@ public class ButtonsUtils {
     }
 
 
-    public static HashMap<String, SecundaryButton> createAlphabetButtons(String subButtons,Consumer<MouseEvent> enterMouse, Consumer<MouseEvent> moveMouse, Consumer<MouseEvent> exitMouse) {
-        HashMap<String, SecundaryButton> alphabet = new HashMap<>();
+    public static HashMap<String, SecondaryButton> createAlphabetButtons(String subButtons, Consumer<MouseEvent> enterMouse, Consumer<MouseEvent> exitMouse) {
+        HashMap<String, SecondaryButton> alphabet = new HashMap<>();
         for (char c: subButtons.toCharArray()) {
-            SecundaryButton button = new SecundaryButton( c!= ' ' ? Character.toString(c) : "SPACE");
+            SecondaryButton button = new SecondaryButton( c!= ' ' ? Character.toString(c) : "SPACE");
             button.setGroupName(GroupNames.SECOND_ROW.getGroupName());
             button.setOnMouseEntered(enterMouse::accept); //adicionar a funcao listener
-            button.setOnMouseMoved(moveMouse::accept);
             button.setOnMouseExited(exitMouse::accept);
             alphabet.put(Character.toString(c), button);
         }
@@ -47,10 +46,10 @@ public class ButtonsUtils {
     }
 
 
-    public static List<SecundaryButton> createSuggestedWordButtons(int numberOfButtons){
-        List<SecundaryButton> buttons = new ArrayList<>();
+    public static List<SecondaryButton> createSuggestedWordButtons(int numberOfButtons){
+        List<SecondaryButton> buttons = new ArrayList<>();
         for (int i = 0; i < numberOfButtons; i++){
-            SecundaryButton button = new SecundaryButton("Word " + (i+1));
+            SecondaryButton button = new SecondaryButton("Word " + (i+1));
             button.setGroupName(GroupNames.WORDS_ROW.getGroupName());
             buttons.add(button);
         }
@@ -58,10 +57,10 @@ public class ButtonsUtils {
     }
 
 
-    public static List<SecundaryButton> createThirdRowButtons(int totalGroups, GroupNames groupName) {
-        List<SecundaryButton> buttons = new ArrayList<>();
+    public static List<SecondaryButton> createThirdRowButtons(int totalGroups, GroupNames groupName) {
+        List<SecondaryButton> buttons = new ArrayList<>();
         for (int i = 0; i < totalGroups; i++) {
-            SecundaryButton button = new SecundaryButton();
+            SecondaryButton button = new SecondaryButton();
             button.setGroupName(groupName.getGroupName());
             buttons.add(button);
         }

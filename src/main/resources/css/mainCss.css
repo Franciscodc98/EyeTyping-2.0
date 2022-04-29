@@ -1,0 +1,23 @@
+.secondary-button {
+    -fx-background-color: white;
+    -fx-font-size:20;
+    -fx-font-weight:bold;
+    -fx-border-color:black;
+    -fx-border-width: 1 1 1 1;
+}
+
+.group-button{
+    -fx-background-color: white;
+    -fx-font-size:20;
+    -fx-font-weight:bold;
+    -fx-border-color:black;
+    -fx-border-width: 1 1 1 1
+}
+
+.reverse-crossing-button{
+    -fx-background-color: white;
+    -fx-font-size:15;
+    -fx-font-weight:bold;
+    -fx-border-color:black;
+    -fx-border-width: 2 2 2 2
+}
