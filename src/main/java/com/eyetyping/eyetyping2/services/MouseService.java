@@ -26,7 +26,7 @@ public class MouseService {
         if(keyboardController != null){
             Position2D avg = averagePosition();
             Platform.runLater(() -> {
-                keyboardController.refreshNewMouse(avg);
+                //keyboardController.refreshNewMouse(avg);
                 label.setLayoutX(avg.getX());
                 label.setLayoutY(avg.getY());
                 //System.out.println("Label:("+avg.getX() +", " + avg.getY()+ ")");

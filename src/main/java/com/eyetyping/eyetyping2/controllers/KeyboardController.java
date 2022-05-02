@@ -50,7 +50,7 @@ public class KeyboardController implements Initializable {
     private static int TOTAL_GROUPS;
     private static int TOTAL_SECUNDARY_GROUPS;
     private static int TOTAL_BUTTONS_PER_ROW;
-    private static int SIDE_MARGIN = 50;
+    private static int SIDE_MARGIN = 0;
     private VariableGroups variableGroups = null;
     private List<SecondaryButton> suggestedWordsButtons = new ArrayList<>();
     private List<GroupButton> groupsButtonList = new ArrayList<>();
@@ -299,8 +299,10 @@ public class KeyboardController implements Initializable {
 
     private void suggestedWordEnterEvent(MouseEvent mouseEvent){
         SecondaryButton wordButton = (SecondaryButton)(mouseEvent.getSource());
-        startProgress(wordButton);
-        wordButton.setFocussed(true);
+        if(!wordButton.getText().isEmpty()){
+            startProgress(wordButton);
+            wordButton.setFocussed(true);
+        }
     }
 
     private void startProgress(SecondaryButton secondaryButton) {
@@ -334,6 +336,7 @@ public class KeyboardController implements Initializable {
                                 dataService.incrementWordDeletes();
                             }
                         }
+                        clearAllPopupButtons();
                         secondaryButton.setProgress(0);
                         progressTimerAux = 0;
                     }
@@ -381,7 +384,7 @@ public class KeyboardController implements Initializable {
                 );
 
             }
-        }, SLIP_MARGIN-100);
+        }, SLIP_MARGIN-150);
 
     }
 
@@ -480,7 +483,7 @@ public class KeyboardController implements Initializable {
     }
 
     private void resizeTextAreaContent(){
-        double textAreaWidth = windowDimensions.getWidth()*0.6; //60% screen width
+        double textAreaWidth = windowDimensions.getWidth()*0.4; //60% screen width
         wordsToWrite.setPrefSize(textAreaWidth, 10);
         wordsToWrite.setLayoutX(windowDimensions.getWidth()*0.005); //5% left margin
         wordsToWrite.setLayoutY(10); //10px margin top
@@ -490,13 +493,13 @@ public class KeyboardController implements Initializable {
         separator.setEndX(windowDimensions.getWidth());
         int aux = 0;
         for (SecondaryButton deleteButton : deleteOptions) {
-            deleteButton.setPrefSize(windowDimensions.getWidth()*0.1, windowDimensions.getHeight()*0.085);
-            deleteButton.setLayoutX(aux + (windowDimensions.getWidth()*0.62));
+            deleteButton.setPrefSize(windowDimensions.getWidth()*0.15, windowDimensions.getHeight()*0.085);
+            deleteButton.setLayoutX(aux + (windowDimensions.getWidth()*0.45));
             deleteButton.setLayoutY(windowDimensions.getHeight()*0.005);
             aux+= deleteButton.getPrefWidth() + 10;
         }
-        spaceButton.setPrefSize(windowDimensions.getWidth()*0.15, windowDimensions.getHeight()*0.085);
-        spaceButton.setLayoutX(aux + 10 + (windowDimensions.getWidth()*0.62));
+        spaceButton.setPrefSize(windowDimensions.getWidth()*0.2, windowDimensions.getHeight()*0.085);
+        spaceButton.setLayoutX(aux + 10 + (windowDimensions.getWidth()*0.47));
         spaceButton.setLayoutY(windowDimensions.getHeight()*0.005);
 
     }
@@ -571,15 +574,6 @@ public class KeyboardController implements Initializable {
         wordsToWrite.setText("Experiment is finished, thank you!");
         if(connections.isRunning())
             connections.setRunning(false);
-    }
-
-
-    public void refreshNewMouse(Position2D pos) {
-        new Robot().mouseMove(pos.getX(), pos.getY());
-    }
-
-    public void setMainScene(Scene scene){
-        mainScene = scene;
     }
 
 }

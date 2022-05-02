@@ -50,7 +50,7 @@ public class ButtonsUtils {
     public static List<SecondaryButton> createSuggestedWordButtons(int numberOfButtons){
         List<SecondaryButton> buttons = new ArrayList<>();
         for (int i = 0; i < numberOfButtons; i++){
-            SecondaryButton button = SecondaryButton.asRoot("Word " + (i+1));
+            SecondaryButton button = SecondaryButton.asRoot("");
             button.setGroupName(GroupNames.WORDS_ROW.getGroupName());
             buttons.add(button);
         }
