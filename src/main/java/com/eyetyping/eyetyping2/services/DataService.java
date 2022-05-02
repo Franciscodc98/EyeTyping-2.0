@@ -14,6 +14,7 @@ import java.util.*;
 public class DataService{
 
     private static DataService singleton = null;
+    private final Random random = new Random();
 
     //Timer variables
     private long startTime;
@@ -43,8 +44,7 @@ public class DataService{
 
     private void loadDataset() {
         File datasetTxt = new File(GlobalVariables.PHRASES_PATH);
-        try {
-            Scanner reader = new Scanner(datasetTxt);
+        try(Scanner reader = new Scanner(datasetTxt)) {
             while (reader.hasNext()){
                 String line = reader.nextLine().toUpperCase();
                 dataset.add(line);
@@ -55,9 +55,8 @@ public class DataService{
     }
 
     public String getPhraseFromDataset(){
-        Random r = new Random();
         if(!dataset.isEmpty()) {
-            String phrase = dataset.remove(r.nextInt(dataset.size()));
+            String phrase = dataset.remove(random.nextInt(dataset.size()));
             orderedPhrasesUsed.add(phrase);
             totalPhrasesRetrieved+=1;
             return phrase;
@@ -67,7 +66,6 @@ public class DataService{
 
     public void incrementGroupAccess(String groupName){
         accessesData.put(groupName, accessesData.get(groupName) + 1);
-        System.out.println("Incremented: " + groupName);
     }
 
     public void incrementLetterDeletes() {
@@ -102,23 +100,19 @@ public class DataService{
         return singleton;
     }
 
-    public void saveDataToTxt(VariableGroups layoutVariable, String userName, int age, WrittingService writtingService) {
-        try(FileWriter fileWriter = new FileWriter("FirstBatch_" + layoutVariable + "_" + userName, false)){
-
+    public void saveDataToTxt(VariableGroups layoutVariable, String userName, int age, WrittingService writtingService, int session) {
+        try(FileWriter fileWriter = new FileWriter("src/main/resources/testResults/text/"+"ReverseCrossing_" + userName + "_Session_" + session, false)){
             fileWriter.writePhrase("User: " + userName + ", age: " + age + " years old.");
             fileWriter.writePhrase("Total time: " + getTimeElapsed() + "ms");
             fileWriter.writePhrase("Total words written: " + writtingService.getTotalWordsWritten());
             fileWriter.writePhrase("Total words deletions: " + totalWordDeletes);
             fileWriter.writePhrase("Total letter deletions: " + totalLetterDeletes);
-            accessesData.forEach((groupName, count) -> {
-                fileWriter.writePhrase(groupName + ": " + count);
-            });
+            accessesData.forEach((groupName, count) -> fileWriter.writePhrase(groupName + ": " + count));
             List<String> writtenPhrases = writtingService.getWrittenPhrases();
             for(int i = 0; i < writtenPhrases.size(); i++) {
                 fileWriter.writePhrase(orderedPhrasesUsed.get(i));
                 fileWriter.writePhrase(writtenPhrases.get(i));
             }
-            //writtingService.getWrittenPhrases().forEach(fileWriter::writePhrase);
             savedTxt = true;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -126,8 +120,8 @@ public class DataService{
 
     }
 
-    public void saveDataToCsv(VariableGroups layoutVariable, String userName, int age, WrittingService writtingService){
-        try(FileWriter writer = new FileWriter("src/main/resources/ReverseCrossingData.csv", true)){
+    public void saveDataToCsv(VariableGroups layoutVariable, String userName, int age, WrittingService writtingService, int session){
+        try(FileWriter writer = new FileWriter("src/main/resources/testResults/excel/ReverseCrossingData" + session +".csv", true)){
             if(writer.isFileEmpty()){
                 writer.writeDataFromListToCsv(Arrays.stream(getCsvHeader()).toList());
             }

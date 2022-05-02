@@ -9,6 +9,7 @@ import javafx.scene.input.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class ButtonsUtils {
@@ -33,12 +34,12 @@ public class ButtonsUtils {
     }
 
 
-    public static HashMap<String, SecondaryButton> createAlphabetButtons(String subButtons, Consumer<MouseEvent> enterMouse, Consumer<MouseEvent> exitMouse) {
+    public static Map<String, SecondaryButton> createAlphabetButtons(String subButtons, Consumer<MouseEvent> enterMouse, Consumer<MouseEvent> exitMouse) {
         HashMap<String, SecondaryButton> alphabet = new HashMap<>();
         for (char c: subButtons.toCharArray()) {
             SecondaryButton button = new SecondaryButton( c!= ' ' ? Character.toString(c) : "SPACE");
             button.setGroupName(GroupNames.SECOND_ROW.getGroupName());
-            button.setOnMouseEntered(enterMouse::accept); //adicionar a funcao listener
+            button.setOnMouseEntered(enterMouse::accept);
             button.setOnMouseExited(exitMouse::accept);
             alphabet.put(Character.toString(c), button);
         }
@@ -49,7 +50,7 @@ public class ButtonsUtils {
     public static List<SecondaryButton> createSuggestedWordButtons(int numberOfButtons){
         List<SecondaryButton> buttons = new ArrayList<>();
         for (int i = 0; i < numberOfButtons; i++){
-            SecondaryButton button = new SecondaryButton("Word " + (i+1));
+            SecondaryButton button = new SecondaryButton();
             button.setGroupName(GroupNames.WORDS_ROW.getGroupName());
             buttons.add(button);
         }

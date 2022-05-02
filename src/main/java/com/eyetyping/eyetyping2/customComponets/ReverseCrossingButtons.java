@@ -22,13 +22,19 @@ public class ReverseCrossingButtons extends Button {
         setOnMouseEntered(this::reverseCrossingEnterEvent);
         setOnMouseExited(this::reverseCrossingExitEvent);
         if(parentButton instanceof SecondaryButton secondaryButton){
-            setPrefSize(this.parentButton.getWidth()/2, this.parentButton.getPrefHeight()/2); //botao com metade do tamanho do pai
+            setPrefSize(this.parentButton.getWidth()/2, this.parentButton.getPrefHeight()/2);
             if(!secondaryButton.getGroupName().equals(GroupNames.WORDS_ROW.getGroupName())){
-                setLayoutX((parentButton.getLayoutX() + parentButton.getLayoutBounds().getCenterX())-(getPrefWidth()/2)); //centrar o reverse crossing button no botao pai
-                setLayoutY(parentButton.getLayoutY()-getPrefHeight()-margin); //posicionar o Y acima do botao
+                if(getText().equals("SPACE")){
+                    setPrefSize(this.parentButton.getWidth()/2, this.parentButton.getPrefHeight()*0.66);
+                    setLayoutX(parentButton.getLayoutX() - getPrefWidth() - margin);
+                    setLayoutY(parentButton.getLayoutY() + parentButton.getPrefHeight()*0.16);
+                }else {
+                    setLayoutX((parentButton.getLayoutX() + parentButton.getLayoutBounds().getCenterX()) - (getPrefWidth() / 2));
+                    setLayoutY(parentButton.getLayoutY() - getPrefHeight() - margin);
+                }
             }else{
-                setLayoutX((parentButton.getLayoutX() + parentButton.getLayoutBounds().getCenterX())-(getPrefWidth()/2)); //centrar o reverse crossing button acima do butao pai
-                setLayoutY(parentButton.getLayoutY() + parentButton.getPrefHeight()+margin); //posicionar o Y abaixo do botao
+                setLayoutX((parentButton.getLayoutX() + parentButton.getLayoutBounds().getCenterX())-(getPrefWidth()/2));
+                setLayoutY(parentButton.getLayoutY() + parentButton.getPrefHeight()+margin);
             }
         }
         else if(parentButton instanceof DeleteButton){
@@ -56,12 +62,14 @@ public class ReverseCrossingButtons extends Button {
                       -fx-font-size:20;
                       -fx-border-color:black;
                       -fx-border-width: 3 3 3 3;
+                      -fx-background-color: palegreen;
                     """);
         else
             setStyle("""
                        -fx-font-size:15;
                        -fx-border-color:black;
                        -fx-border-width: 1 1 1 1;
+                       -fx-background-color: palegreen;
                     """);
     }
 

@@ -21,3 +21,11 @@
     -fx-border-color:black;
     -fx-border-width: 2 2 2 2
 }
+
+.reverse-crossing-delete-button{
+    -fx-background-color: white;
+    -fx-font-size:15;
+    -fx-font-weight:bold;
+    -fx-border-color:black;
+    -fx-border-width: 2 2 2 2
+}

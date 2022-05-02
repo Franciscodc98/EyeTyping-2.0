@@ -5,7 +5,7 @@ import javafx.scene.input.MouseEvent;
 
 public class ReverseCrossingDelete extends Button{
 
-    private static double margin = 5;
+    private static final double margin = 5;
     private final DeleteButton parentButton;
     private boolean word = false;
 
@@ -13,18 +13,14 @@ public class ReverseCrossingDelete extends Button{
         super();
         this.parentButton = parentButton;
         this.word = word;
-        getStyleClass().add("reverse-crossing-button");
+        getStyleClass().add("reverse-crossing-delete-button");
         setOnMouseEntered(this::reverseCrossingEnterEvent);
         setOnMouseExited(this::reverseCrossingExitEvent);
         if(word){
-            setPrefSize(parentButton.getWidth(), parentButton.getPrefHeight());
-            setLayoutX(parentButton.getLayoutX() - getPrefWidth() - margin);
-            setLayoutY(parentButton.getLayoutY());
+            refreshSize();
             setText("word");
         }else{
-            setPrefSize(parentButton.getWidth(), parentButton.getPrefHeight());
-            setLayoutX(parentButton.getLayoutX() + getPrefWidth() + margin);
-            setLayoutY(parentButton.getLayoutY());
+            refreshSize();
             setText("letter");
         }
     }
@@ -48,13 +44,13 @@ public class ReverseCrossingDelete extends Button{
 
     public void refreshSize() {
         if(word){
-            setPrefSize(parentButton.getWidth(), parentButton.getPrefHeight());
+            setPrefSize(parentButton.getWidth()*0.66, parentButton.getPrefHeight()*0.66);
             setLayoutX(parentButton.getLayoutX() - getPrefWidth() - margin);
-            setLayoutY(parentButton.getLayoutY());
+            setLayoutY(parentButton.getLayoutY() + parentButton.getPrefHeight()*0.16);
         }else{
-            setPrefSize(parentButton.getWidth(), parentButton.getPrefHeight());
-            setLayoutX(parentButton.getLayoutX() + getPrefWidth() + margin);
-            setLayoutY(parentButton.getLayoutY());
+            setPrefSize(parentButton.getWidth()*0.66, parentButton.getPrefHeight()*0.66);
+            setLayoutX(parentButton.getLayoutX() + parentButton.getPrefWidth() + margin);
+            setLayoutY(parentButton.getLayoutY() + parentButton.getPrefHeight()*0.16);
         }
     }
 
