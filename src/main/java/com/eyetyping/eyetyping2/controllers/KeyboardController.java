@@ -10,7 +10,6 @@ import com.eyetyping.eyetyping2.services.WrittingService;
 import com.eyetyping.eyetyping2.utils.ButtonsUtils;
 import com.eyetyping.eyetyping2.enums.GroupNames;
 import com.eyetyping.eyetyping2.utils.Maths;
-import com.eyetyping.eyetyping2.utils.Position2D;
 import com.eyetyping.eyetyping2.utils.WindowDimensions;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -20,7 +19,6 @@ import javafx.scene.control.Button;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.robot.Robot;
 import javafx.scene.shape.Line;
 import lombok.Data;
 
@@ -35,6 +33,7 @@ public class KeyboardController implements Initializable {
     //User data
     private static final String USERNAME = "Francisco Cardoso";
     private static final int AGE = 23;
+    private static final VariableGroups GROUPS = VariableGroups.MEDIUM_GROUPS;
 
     //Services
     private final SuggestionsService suggestionsService = SuggestionsService.getInstance();
@@ -101,16 +100,16 @@ public class KeyboardController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        calculateGroupsSize(VariableGroups.MEDIUM_GROUPS); //Alterar isto para os diferentes tipos de layout
+        calculateGroupsSize();
         setupButtons();
         addRootAnchorListeners();
         mouseService.setKeyboardController(this);
         mouseService.setWindowDimensions(windowDimensions);
     }
 
-    private void calculateGroupsSize(VariableGroups variableGroups){
-        this.variableGroups = variableGroups;
-        if(variableGroups.getVariableGroupName().equals(VariableGroups.BIG_GROUPS.getVariableGroupName()))
+    private void calculateGroupsSize(){
+        this.variableGroups = KeyboardController.GROUPS;
+        if(KeyboardController.GROUPS.getVariableGroupName().equals(VariableGroups.BIG_GROUPS.getVariableGroupName()))
             TOTAL_GROUPS = 4;
         else
             TOTAL_GROUPS = 6;
