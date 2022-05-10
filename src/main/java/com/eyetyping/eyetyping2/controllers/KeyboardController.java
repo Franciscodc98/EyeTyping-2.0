@@ -50,6 +50,7 @@ public class KeyboardController implements Initializable {
     private static int TOTAL_SECUNDARY_GROUPS;
     private static int TOTAL_BUTTONS_PER_ROW;
     private static int SIDE_MARGIN = 0;
+    private static int WORDS_MARGIN = 20;
     private VariableGroups variableGroups = null;
     private List<SecondaryButton> suggestedWordsButtons = new ArrayList<>();
     private List<GroupButton> groupsButtonList = new ArrayList<>();
@@ -144,7 +145,7 @@ public class KeyboardController implements Initializable {
         for (SecondaryButton button : suggestedWordsButtons) {
             button.setPrefSize(buttonWidth, buttonHeight);
             button.setLayoutX(xCoordinateAux);
-            button.setLayoutY(separator.getStartY());
+            button.setLayoutY(separator.getStartY() + WORDS_MARGIN);
             button.setOnMouseEntered(this::suggestedWordEnterEvent);
             button.setOnMouseExited(this::suggestedWordsExitEvent);
             xCoordinateAux+=buttonWidth;
@@ -320,7 +321,9 @@ public class KeyboardController implements Initializable {
                                 dataService.incrementGroupAccess(secondaryButton.getGroupName());
                                 if(secondaryButton.getGroupName().equals(GroupNames.WORDS_ROW.getGroupName())){
                                     setWrittenWordsText(buttonText, true);
+                                    emptyRecommendedWords();
                                     clearAllPopupButtons();
+                                    progressBarProgress.cancel();
                                 }else
                                     setWrittenWordsText(buttonText, false);
                             }else{
@@ -419,6 +422,11 @@ public class KeyboardController implements Initializable {
             }
         }
         resizeButtons();
+    }
+
+    private void emptyRecommendedWords(){
+        for (SecondaryButton button : suggestedWordsButtons)
+            button.setText("");
     }
 
     private void clearAllPopupButtons(){
