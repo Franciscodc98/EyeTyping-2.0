@@ -7,23 +7,23 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Getter
-public class WrittingService {
+public class WritingService {
 
-    private static WrittingService singleton = null;
+    private static WritingService singleton = null;
 
     private final LinkedList<String> writtenPhrases = new LinkedList<>();
 
     private final LinkedList<Character> writtenText = new LinkedList<>();
 
-    private WrittingService(){}
+    private WritingService(){}
 
-    public LinkedList<Character> addLetters(String letters) {
+    public List<Character> addLetters(String letters) {
         for (char c: letters.toCharArray())
             writtenText.add(c);
         return writtenText;
     }
 
-    public LinkedList<Character> addWord(String word){
+    public List<Character> addWord(String word){
         int lastWordIndex = getLastWordIndex();
         if(lastWordIndex != 0){
             for(int i = writtenText.size() - 1; i > lastWordIndex; i--)
@@ -40,13 +40,13 @@ public class WrittingService {
         return writtenText;
     }
 
-    public LinkedList<Character> deleteLetter() {
+    public List<Character> deleteLetter() {
         if(!writtenText.isEmpty())
             writtenText.removeLast();
         return writtenText;
     }
 
-    public LinkedList<Character> deleteWord() {
+    public List<Character> deleteWord() {
         LinkedList<Character> result = new LinkedList<>();
         if(!writtenText.isEmpty()){
             String [] aux = getTextString().split(" ");
@@ -61,9 +61,9 @@ public class WrittingService {
         return result;
     }
 
-    public static WrittingService getInstance(){
+    public static WritingService getInstance(){
         if(singleton==null)
-            singleton = new WrittingService();
+            singleton = new WritingService();
         return singleton;
     }
 
@@ -81,7 +81,7 @@ public class WrittingService {
         }
     }
 
-    private String getTextString() {
+    public String getTextString() {
         StringBuilder sb = new StringBuilder();
         for (Character c: writtenText)
             sb.append(c);
@@ -116,7 +116,7 @@ public class WrittingService {
 
 
     public static void main(String[] args) {
-        WrittingService service = WrittingService.getInstance();
+        WritingService service = WritingService.getInstance();
         service.addWord("Hello word I need there");
         service.addLetters("h");
         service.addWord("heyy.");

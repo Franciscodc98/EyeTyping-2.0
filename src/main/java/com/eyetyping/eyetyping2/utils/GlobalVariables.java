@@ -6,6 +6,7 @@ public class GlobalVariables {
 
 
     public static final String PHRASES_PATH = "src/main/resources/TestingPhrasesDataset.txt";
+    public static final String USER_ID_PATH = "src/main/resources/UserId.txt";
 
     public static final String ALPHABET_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     public static final String ALPHABET_LETTERS_EXTENDED = "ABCDEFGHIJKLMNOPQRSTUVWXYZ!?.,";

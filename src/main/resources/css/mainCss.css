@@ -11,7 +11,7 @@
     -fx-font-size:20;
     -fx-font-weight:bold;
     -fx-border-color:black;
-    -fx-border-width: 1 1 1 1
+    -fx-border-width: 1 1 1 1;
 }
 
 .reverse-crossing-button{
@@ -19,13 +19,5 @@
     -fx-font-size:15;
     -fx-font-weight:bold;
     -fx-border-color:black;
-    -fx-border-width: 2 2 2 2
-}
-
-.reverse-crossing-delete-button{
-    -fx-background-color: white;
-    -fx-font-size:15;
-    -fx-font-weight:bold;
-    -fx-border-color:black;
-    -fx-border-width: 2 2 2 2
+    -fx-border-width: 2 2 2 2;
 }

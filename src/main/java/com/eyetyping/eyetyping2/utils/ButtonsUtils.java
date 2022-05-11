@@ -26,11 +26,8 @@ public class ButtonsUtils {
                 GroupButton button = new GroupButton(buttonText);
                 buttonList.add(button);
             }
-        } else{
-            //create variable groups
         }
         return buttonList;
-
     }
 
 

@@ -47,18 +47,37 @@ public class SecondaryButton extends Button {
 
     public void setFocussed(boolean focussed){
         inFocus = focussed;
-        if(focussed)
-            setStyle("""
+        if(!getText().equals("Del word") && !getText().equals("Del letter")){
+            if(focussed) {
+                setStyle("""
                       -fx-font-size:25;
                       -fx-border-color:black;
                       -fx-border-width: 3 3 3 3;
                     """);
-        else
-            setStyle("""
+            }
+            else {
+                setStyle("""
                        -fx-font-size:20;
                        -fx-border-color:black;
                        -fx-border-width: 1 1 1 1;
                     """);
+            }
+        }else{
+            if(focussed) {
+                setStyle("""
+                      -fx-font-size:20;
+                      -fx-border-color:black;
+                      -fx-border-width: 3 3 3 3;
+                    """);
+            }
+            else {
+                setStyle("""
+                       -fx-font-size:20;
+                       -fx-border-color:black;
+                       -fx-border-width: 1 1 1 1;
+                    """);
+            }
+        }
     }
 
     public void updateBackgroundColor(){

@@ -5,26 +5,27 @@ import com.eyetyping.eyetyping2.enums.VariableGroups;
 import com.eyetyping.eyetyping2.utils.FileWriter;
 import com.eyetyping.eyetyping2.utils.GlobalVariables;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
 @Getter
+@Setter
 public class DataService{
 
     private static DataService singleton = null;
     private final Random random = new Random();
 
+    private int userId;
+
     //Timer variables
     private long startTime;
-    private long endTime;
-    private long timeElapsed;
+    private long lastTypedTime;
     private boolean started = false;
+    private boolean paused = true;
     private boolean finished = false;
-
-    private boolean savedTxt = false;
-    private boolean savedCsv = false;
 
     //Dataset variables
     private final LinkedList<String> dataset = new LinkedList<>();
@@ -37,9 +38,28 @@ public class DataService{
     private int totalPhrasesRetrieved = 0;
 
     private DataService(){
+        loadUserId();
         loadDataset();
         for (GroupNames group :GroupNames.values())
             accessesData.put(group.getGroupName(), 0);
+    }
+
+    private void loadUserId(){
+        File datasetTxt = new File(GlobalVariables.USER_ID_PATH);
+        try(Scanner reader = new Scanner(datasetTxt)) {
+            while (reader.hasNext())
+                userId = Integer.parseInt(reader.nextLine());
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void incrementUserId(){
+        try(FileWriter fileWriter = new FileWriter(GlobalVariables.USER_ID_PATH, false)){
+            fileWriter.writePhrase(userId + 1 + "");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     private void loadDataset() {
@@ -78,20 +98,12 @@ public class DataService{
 
     public void startTimer(){
         startTime = System.nanoTime();
+        lastTypedTime = startTime;
         started = true;
     }
 
-    public void stopTimer(){
-        endTime = System.nanoTime();
-        timeElapsed = (endTime - startTime) / 1_000_000;
-        started = false;
-        finished = true;
-    }
-
-    public void timerFinished(int time){
-        timeElapsed = (long) time * 60 * 1000;
-        started = false;
-        finished = true;
+    public void lastTypedTime(){
+        lastTypedTime = System.nanoTime();
     }
 
     public static DataService getInstance(){
@@ -100,62 +112,60 @@ public class DataService{
         return singleton;
     }
 
-    public void saveDataToTxt(VariableGroups layoutVariable, String userName, int age, WrittingService writtingService, int session) {
-        try(FileWriter fileWriter = new FileWriter("src/main/resources/testResults/text/"+"ReverseCrossing_" + userName + "_Session_" + session, false)){
-            fileWriter.writePhrase("User: " + userName + ", age: " + age + " years old.");
-            fileWriter.writePhrase("Total time: " + getTimeElapsed() + "ms");
-            fileWriter.writePhrase("Total words written: " + writtingService.getTotalWordsWritten());
-            fileWriter.writePhrase("Total words deletions: " + totalWordDeletes);
-            fileWriter.writePhrase("Total letter deletions: " + totalLetterDeletes);
-            accessesData.forEach((groupName, count) -> fileWriter.writePhrase(groupName + ": " + count));
-            List<String> writtenPhrases = writtingService.getWrittenPhrases();
-            for(int i = 0; i < writtenPhrases.size(); i++) {
-                fileWriter.writePhrase(orderedPhrasesUsed.get(i));
-                fileWriter.writePhrase(writtenPhrases.get(i));
-            }
-            savedTxt = true;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
 
-    }
-
-    public void saveDataToCsv(VariableGroups layoutVariable, String userName, int age, WrittingService writtingService, int session){
-        try(FileWriter writer = new FileWriter("src/main/resources/testResults/excel/ReverseCrossingData" + session +".csv", true)){
-            if(writer.isFileEmpty()){
+    public void saveDataToCsv(List<String> data){
+        try(FileWriter writer = new FileWriter("src/main/resources/testResults/" + userId + ".csv", true)){
+            if (writer.isFileEmpty())
                 writer.writeDataFromListToCsv(Arrays.stream(getCsvHeader()).toList());
-            }
-            writer.writeDataFromListToCsv(dataToSave(layoutVariable, userName, age, writtingService));
-            savedCsv = true;
+            writer.writeDataFromListToCsv(data);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+        } finally {
+            totalWordDeletes = 0;
+            totalLetterDeletes = 0;
+            accessesData.forEach((s, integer) -> accessesData.replace(s, 0));
         }
-
     }
 
     private String [] getCsvHeader(){
-        String headerAux = "First Name, Age, Layout, Total Time(ms), Total words written, Total word deletions, Total letter deletions";
+        String headerAux = "Id, Given Phrase, Typed Phrase, Error metric 1, Error metric 2, Tempo (s), Characters written (including spaces), Words Written, WPM, Deleted letters, Deleted words";
         String[] both = Arrays.copyOf(headerAux.split(", "), headerAux.split(", ").length + accessesData.keySet().toArray(new String[0]).length);
         System.arraycopy(accessesData.keySet().toArray(new String[0]), 0, both, headerAux.split(", ").length, accessesData.keySet().toArray(new String[0]).length);
         return both;
     }
 
-    private List<String> dataToSave(VariableGroups layoutVariable, String userName, int age, WrittingService writtingService){
+    public List<String> csvLineData(String originalPhrase, String typedPhrase){
+        double seconds = (lastTypedTime - startTime)/1_000_000_000D;
+        int words = calculateWordsTyped(typedPhrase);
+        double wpm = (seconds/60) == 0 ? 0 : words/(seconds/60);
         List<String> data = new ArrayList<>();
-        data.add(userName);
-        data.add(String.valueOf(age));
-        data.add(layoutVariable.getVariableGroupName());
-        data.add(String.valueOf(getTimeElapsed()));
-        data.add(String.valueOf(writtingService.getTotalWordsWritten()));
-        data.add(String.valueOf(totalWordDeletes));
+        data.add(String.valueOf(userId));
+        data.add(originalPhrase);
+        data.add(typedPhrase);
+        data.add(String.valueOf(0)); //Error metric 1
+        data.add(String.valueOf(0)); //Error metric 2
+        data.add(String.valueOf(seconds));
+        data.add(String.valueOf(typedPhrase.length()));
+        data.add(String.valueOf(words));
+        data.add(String.valueOf(wpm));
         data.add(String.valueOf(totalLetterDeletes));
+        data.add(String.valueOf(totalWordDeletes));
         accessesData.forEach((k, v) -> data.add(String.valueOf(v)));
         return data;
     }
 
+    private int calculateWordsTyped(String phrase){
+        List<String> words = Arrays.stream(phrase.split(" ")).toList();
+        if(!words.isEmpty() && !words.get(0).isEmpty())
+            return words.size();
+        else
+            return 0;
+    }
+
     public static void main(String[] args) {
         DataService dataService = DataService.getInstance();
-        Arrays.stream(dataService.getCsvHeader()).iterator().forEachRemaining(System.out::println);
+        //Arrays.stream(dataService.getCsvHeader()).iterator().forEachRemaining(System.out::println);
+        System.out.println(dataService.getUserId());
     }
 
 
