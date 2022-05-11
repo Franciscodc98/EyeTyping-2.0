@@ -30,6 +30,9 @@ import java.util.stream.Collectors;
 public class KeyboardController implements Initializable {
 
     public static final String SPACE = "SPACE";
+
+    private boolean canWrite = false;
+
     //User data
     private static final String USERNAME = "Francisco Cardoso";
     private static final int AGE = 23;
@@ -37,7 +40,7 @@ public class KeyboardController implements Initializable {
 
     //Services
     private final SuggestionsService suggestionsService = SuggestionsService.getInstance();
-    private final WrittingService writtingService = WrittingService.getInstance();
+    private final WrittingService writingService = WrittingService.getInstance();
     private final DataService dataService = DataService.getInstance();
     private final MouseService mouseService = MouseService.getSingleton();
 
@@ -90,13 +93,6 @@ public class KeyboardController implements Initializable {
     private TimerTask progressBarProgress;
     private TimerTask slipMargin;
     private double progressTimerAux = 0;
-    private TimerTask timeout = new TimerTask() {
-        @Override
-        public void run() {
-            dataService.timerFinished(TIME);
-            Platform.runLater(KeyboardController.this::finished);
-        }
-    };
 
 
     @Override
@@ -194,6 +190,7 @@ public class KeyboardController implements Initializable {
         rootAnchor.getChildren().add(wordsWritten);
         rootAnchor.getChildren().addAll(deleteOptions);
         rootAnchor.getChildren().add(spaceButton);
+        wordsToWrite.setText(dataService.getPhraseFromDataset());
     }
 
     private void groupsButtonEnterEvent(MouseEvent mouseEvent) {
@@ -306,47 +303,52 @@ public class KeyboardController implements Initializable {
     }
 
     private void startProgress(SecondaryButton secondaryButton) {
-        progressBarProgress = new TimerTask() {
-            @Override
-            public void run() {
-                Platform.runLater(() -> {
-                    double progress = Maths.normalizeBetween0and1(0, DWELL_TIME, progressTimerAux);
-                    if (progress < 1.0){
-                        secondaryButton.setProgress(progress);
-                    } else{
-                        String buttonText = secondaryButton.getText();
-                        secondaryButton.updateBackgroundColor();
-                        if(!secondaryButton.getGroupName().equals("delete")){
-                            if(!buttonText.equals(SPACE)){
-                                dataService.incrementGroupAccess(secondaryButton.getGroupName());
-                                if(secondaryButton.getGroupName().equals(GroupNames.WORDS_ROW.getGroupName())){
-                                    setWrittenWordsText(buttonText, true);
-                                    emptyRecommendedWords();
-                                    clearAllPopupButtons();
-                                    progressBarProgress.cancel();
-                                }else
-                                    setWrittenWordsText(buttonText, false);
-                            }else{
-                                setWrittenWordsText(" ", false);
+        if(canWrite) {
+            progressBarProgress = new TimerTask() {
+                @Override
+                public void run() {
+                    Platform.runLater(() -> {
+                        double progress = Maths.normalizeBetween0and1(0, DWELL_TIME, progressTimerAux);
+                        if (progress < 1.0) {
+                            secondaryButton.setProgress(progress);
+                        } else {
+                            String buttonText = secondaryButton.getText();
+                            secondaryButton.updateBackgroundColor();
+                            if (!secondaryButton.getGroupName().equals("delete")) {
+                                if (!buttonText.equals(SPACE)) {
+                                    dataService.incrementGroupAccess(secondaryButton.getGroupName());
+                                    if (secondaryButton.getGroupName().equals(GroupNames.WORDS_ROW.getGroupName())) {//words
+                                        setWrittenWordsText(buttonText, true);
+                                        emptyRecommendedWords();
+                                        clearAllPopupButtons();
+                                        dataService.lastTypedTime();
+                                        progressBarProgress.cancel();
+                                    } else { //letters
+                                        setWrittenWordsText(buttonText, false);
+                                        dataService.lastTypedTime();
+                                    }
+                                } else {//space
+                                    setWrittenWordsText(" ", false);
+                                }
+                            } else {
+                                if (buttonText.equals("Delete letter")) {
+                                    wordsWritten.setText(writingService.deleteLetter().stream().map(c -> Character.toString(c)).collect(Collectors.joining()) + "|");
+                                    dataService.incrementLetterDeletes();
+                                } else {
+                                    wordsWritten.setText(writingService.deleteWord().stream().map(c -> Character.toString(c)).collect(Collectors.joining()) + "|");
+                                    dataService.incrementWordDeletes();
+                                }
                             }
-                        }else{
-                            if(buttonText.equals("Delete letter")){
-                                wordsWritten.setText(writtingService.deleteLetter().stream().map(c -> Character.toString(c)).collect(Collectors.joining()) + "|");
-                                dataService.incrementLetterDeletes();
-                            }else{
-                                wordsWritten.setText(writtingService.deleteWord().stream().map(c -> Character.toString(c)).collect(Collectors.joining()) + "|");
-                                dataService.incrementWordDeletes();
-                            }
+                            clearAllPopupButtons();
+                            secondaryButton.setProgress(0);
+                            progressTimerAux = 0;
                         }
-                        clearAllPopupButtons();
-                        secondaryButton.setProgress(0);
-                        progressTimerAux = 0;
-                    }
-                });
-                progressTimerAux +=20;
-            }
-        };
-        timer.scheduleAtFixedRate(progressBarProgress, 0, 20); //updates progress Bar every 20ms
+                    });
+                    progressTimerAux += 20;
+                }
+            };
+            timer.scheduleAtFixedRate(progressBarProgress, 0, 20); //updates progress Bar every 20ms
+        }
     }
 
     private void buttonsExitEvent(MouseEvent mouseEvent){
@@ -513,14 +515,14 @@ public class KeyboardController implements Initializable {
 
     private void setWrittenWordsText(String text, boolean isWord){
         if(isWord)
-            wordsWritten.setText(writtingService.addWord(text).stream().map(c -> Character.toString(c)).collect(Collectors.joining())+"|");
+            wordsWritten.setText(writingService.addWord(text).stream().map(c -> Character.toString(c)).collect(Collectors.joining())+"|");
         else
-            wordsWritten.setText(writtingService.addLetters(text).stream().map(c -> Character.toString(c)).collect(Collectors.joining())+"|");
+            wordsWritten.setText(writingService.addLetters(text).stream().map(c -> Character.toString(c)).collect(Collectors.joining())+"|");
     }
 
     private void updateSuggestedWordsOnHover(SecondaryButton button) {
         if(!button.getText().equals(SPACE) && !button.getText().equals(",") && !button.getText().equals(".") && !button.getText().equals("!") && !button.getText().equals("?")){
-            List<String> suggestedWords = suggestionsService.getSuggestionList(writtingService.getCurrentTypingWord() + button.getText());
+            List<String> suggestedWords = suggestionsService.getSuggestionList(writingService.getCurrentTypingWord() + button.getText());
             int i = 0;
             for (SecondaryButton suggestedWordButton : suggestedWordsButtons) {
                 if(suggestedWords.size() > i){
@@ -554,33 +556,42 @@ public class KeyboardController implements Initializable {
 
     public void setKeyListener() {
         mainScene.setOnKeyPressed(event -> {
-            if(event.getCode() == KeyCode.CONTROL && !dataService.isStarted() && !dataService.isFinished()){
-                timer.schedule(timeout, TIME * 60 * 1000L);
-                if(CONNECT_SERVER)
-                    connections.connect("localhost", 3000);
-                dataService.startTimer();
-                wordsToWrite.setText(dataService.getPhraseFromDataset());
-            }else if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() < 10 && !dataService.isFinished()){
-                wordsToWrite.setText(dataService.getPhraseFromDataset());
-                writtingService.nextPhrase();
-                wordsWritten.setText("");
-            } else if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() == 10 && !dataService.isFinished()){
-                dataService.stopTimer();
-                finished();
-            } else if(event.getCode() == KeyCode.BACK_SPACE){
+            if(event.getCode() == KeyCode.BACK_SPACE && !canWrite)
+                canWrite = true;
+            else if(event.getCode() == KeyCode.BACK_SPACE && canWrite)
+                canWrite = false;
+
+            if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() < 5){
+                controlPressed();
+            }else if(event.getCode() == KeyCode.CONTROL){
                 finished();
             }
         });
     }
 
-    private void finished() {
-        if(!dataService.isSavedTxt())
-            dataService.saveDataToTxt(variableGroups,USERNAME, AGE, writtingService);
-        if(!dataService.isSavedCsv())
-            dataService.saveDataToCsv(variableGroups,USERNAME, AGE, writtingService);
-        wordsToWrite.setText("Experiment is finished, thank you!");
-        if(connections.isRunning())
-            connections.setRunning(false);
+    private void controlPressed(){
+        if(dataService.isPaused()){
+            wordsWritten.setTimerOnFeedback(true);
+            dataService.startTimer();
+            dataService.setPaused(false);
+            canWrite = true;
+            emptyRecommendedWords();
+            clearAllPopupButtons();
+        }else{
+            dataService.setPaused(true);
+            wordsWritten.setTimerOnFeedback(false);
+            dataService.saveDataToCsv(dataService.csvLineData(wordsToWrite.getText(), writingService.getTextString()));
+            wordsToWrite.setText(dataService.getPhraseFromDataset());
+            writingService.nextPhrase();
+            wordsWritten.setText("");
+            canWrite = false;
+        }
+    }
+
+    private void finished(){
+        wordsToWrite.setText("Finished, thank you!");
+        wordsWritten.setText("");
+        dataService.incrementUserId();
     }
 
 }

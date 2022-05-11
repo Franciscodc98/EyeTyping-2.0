@@ -1,0 +1,5 @@
+Id,Given Phrase,Typed Phrase,Error metric 1,Error metric 2,Tempo (s),Characters written (including spaces),Words Written,WPM,Deleted letters,Deleted words,secondRow,thirdRow,fourthRow,wordsRow
+0,FOR YOUR INFORMATION ONLY,ARE ZAC,0,0,6.9319684,7,2,17.311100264103917,0,0,1,0,1,1
+0,VICTIMS DESERVE MORE REDRESS,NATURAL ,0,0,2.4309816,8,1,24.681387962788364,0,0,0,0,0,1
+0,AN INEFFICIENT WAY TO HEAT A HOUSE,,0,0,0.0,0,0,0.0,0,0,0,0,0,0
+0,MY CAR ALWAYS BREAKS IN THE WINTER,,0,0,0.0,0,0,0.0,0,0,0,0,0,0

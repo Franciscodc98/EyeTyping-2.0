@@ -7,13 +7,27 @@ public class TextWrittenLabel extends Label {
 
     public TextWrittenLabel(){
         super();
-
-        super.setText("Text you write will appear here");
-        super.setFont(new Font("Arial", 20));
-        super.setStyle("""
+        setText("Text you write will appear here");
+        setFont(new Font("Arial", 20));
+        setStyle("""
                         -fx-border-color: black;
-                        -fx-border-width: 1;
+                        -fx-border-width: 3;
                     """);
     }
+
+    public void setTimerOnFeedback(boolean onOff){
+        if(onOff){
+            setStyle("""
+                        -fx-border-color: green;
+                        -fx-border-width: 3;
+                    """);
+        }else{
+            setStyle("""
+                        -fx-border-color: red;
+                        -fx-border-width: 3;
+                    """);
+        }
+    }
+
 
 }

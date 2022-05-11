@@ -1,0 +1,5 @@
+Id,Given Phrase,Typed Phrase,Error metric 1,Error metric 2,Tempo (s),Characters written (including spaces),Words Written,WPM,Deleted letters,Deleted words,secondRow,thirdRow,fourthRow,wordsRow
+1,BE DISCREET ABOUT YOUR MEETING,AN NEW THAT ,0,0,11.27834,12,3,15.959795501820304,0,0,0,0,0,3
+1,FEBRUARY HAS AN EXTRA DAY,FEBRUARY HAS AN EXTRA DAY ,0,0,29.516272,26,5,10.163885195257722,0,0,0,0,0,5
+1,IF YOU COME HOME LATE THE DOORS ARE LOCKED,,0,0,0.0,0,0,0.0,0,0,0,0,0,0
+1,STABILITY OF THE NATION,,0,0,0.0,0,0,0.0,0,0,0,0,0,0

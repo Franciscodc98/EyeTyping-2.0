@@ -81,7 +81,7 @@ public class WrittingService {
         }
     }
 
-    private String getTextString() {
+    public String getTextString() {
         StringBuilder sb = new StringBuilder();
         for (Character c: writtenText)
             sb.append(c);
