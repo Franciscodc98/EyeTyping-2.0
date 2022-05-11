@@ -88,7 +88,7 @@ public class KeyboardController implements Initializable {
     private TextWrittenLabel wordsWritten;
 
     //dwell time
-    private static final double DWELL_TIME = 800; //dwell time for selection in ms
+    private static final double DWELL_TIME = 500; //dwell time for selection in ms
     private Timer timer = new Timer();
     private TimerTask progressBarProgress;
     private TimerTask slipMargin;
