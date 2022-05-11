@@ -128,7 +128,7 @@ public class DataService{
     }
 
     private String [] getCsvHeader(){
-        String headerAux = "Id, Given Phrase, Typed Phrase, Error metric 1, Error metric 2, Tempo (s), Characters written (including spaces), Words Written, WPM, Deleted letters, Deleted words";
+        String headerAux = "Id, Given Phrase, Typed Phrase, Error metric 1, Error metric 2, Tempo (s), Characters written (including spaces), Words Written, WPM, Deleted letters, Deleted words, technique";
         String[] both = Arrays.copyOf(headerAux.split(", "), headerAux.split(", ").length + accessesData.keySet().toArray(new String[0]).length);
         System.arraycopy(accessesData.keySet().toArray(new String[0]), 0, both, headerAux.split(", ").length, accessesData.keySet().toArray(new String[0]).length);
         return both;
@@ -151,6 +151,7 @@ public class DataService{
         data.add(String.valueOf(totalLetterDeletes));
         data.add(String.valueOf(totalWordDeletes));
         accessesData.forEach((k, v) -> data.add(String.valueOf(v)));
+        data.add("Dwell time");
         return data;
     }
 

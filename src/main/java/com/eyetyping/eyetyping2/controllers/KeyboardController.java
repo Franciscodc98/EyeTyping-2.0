@@ -561,7 +561,7 @@ public class KeyboardController implements Initializable {
             else if(event.getCode() == KeyCode.BACK_SPACE && canWrite)
                 canWrite = false;
 
-            if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() < 5){
+            if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() <= 5){
                 controlPressed();
             }else if(event.getCode() == KeyCode.CONTROL){
                 finished();
