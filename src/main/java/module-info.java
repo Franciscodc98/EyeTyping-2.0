@@ -14,7 +14,6 @@ module com.eyetyping.eyetyping2 {
     opens com.eyetyping.eyetyping2 to javafx.fxml;
     exports com.eyetyping.eyetyping2;
     exports com.eyetyping.eyetyping2.controllers;
-    exports com.eyetyping.eyetyping2.eyetracker;
     exports com.eyetyping.eyetyping2.utils;
     exports com.eyetyping.eyetyping2.customComponets;
     exports com.eyetyping.eyetyping2.enums;

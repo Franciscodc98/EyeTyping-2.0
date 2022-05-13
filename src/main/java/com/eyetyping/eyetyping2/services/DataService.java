@@ -1,7 +1,6 @@
 package com.eyetyping.eyetyping2.services;
 
 import com.eyetyping.eyetyping2.enums.GroupNames;
-import com.eyetyping.eyetyping2.enums.VariableGroups;
 import com.eyetyping.eyetyping2.utils.FileWriter;
 import com.eyetyping.eyetyping2.utils.GlobalVariables;
 import lombok.Getter;
@@ -211,10 +210,6 @@ public class DataService{
         return Arrays.stream(numbers)
                 .min().orElse(Integer.MAX_VALUE);
     }
-
-    public static void main(String[] args) {
-    }
-
 
     public void incrementTotalPhrasesRetried() {
         totalPhrasesRetrieved++;

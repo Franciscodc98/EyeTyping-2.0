@@ -1,14 +1,12 @@
 package com.eyetyping.eyetyping2.services;
 
 import com.eyetyping.eyetyping2.utils.GlobalVariables;
-import lombok.Data;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-@Data
 public class SuggestionsService {
 
     private static SuggestionsService singleton = null;
@@ -62,13 +60,6 @@ public class SuggestionsService {
         return singleton;
     }
 
-    public static void main(String[] args) {
-        //getInstance().generateSuggestedSubstring("he").forEach(System.out::println);
-        List<String> test = getInstance().sortedMostCommonSubstrings(getInstance().getSuggestionList("V"), 2);
-        for (String s :
-                test) {
-            System.out.println(s);
-        }
 
-    }
+
 }

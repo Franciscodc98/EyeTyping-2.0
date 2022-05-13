@@ -7,7 +7,6 @@ import javafx.scene.layout.StackPane;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -27,7 +26,7 @@ public class SecondaryButton extends StackPane {
         progressBar = new ProgressBar(0);
         setListeners();
         addContent();
-        getStyleClass().add("secundary-button");
+        getStyleClass().add("secondary-button");
     }
 
     public static SecondaryButton asRoot(String text){
