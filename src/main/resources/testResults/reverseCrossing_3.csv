@@ -1,6 +1,0 @@
-Id,Technique,Given Phrase,Typed Phrase,Minimum String Distance,Error Rate,Tempo (s),Characters written (including spaces),Words Written,WPM,Deleted letters,Deleted words,secondRow,thirdRow,fourthRow,wordsRow
-3,Reverse Crossing,INTERACTIONS BETWEEN MEN AND WOMEN,ANDERSON NOTHING HOMH NA,24,70.58823529411765,13.0252945,24,4,18.425687035329606,1,2,2,2,2,3
-3,Reverse Crossing,THE STORE WILL CLOSE AT TEN,,27,100.0,0.0,0,0,0.0,0,0,0,0,0,0
-3,Reverse Crossing,BUT THE LEVEE WAS DRY,,21,100.0,0.0,0,0,0.0,0,0,0,0,0,0
-3,Reverse Crossing,JUMPING RIGHT OUT OF THE WATER,,30,100.0,0.0,0,0,0.0,0,0,0,0,0,0
-3,Reverse Crossing,THE FORCE IS WITH YOU,,21,100.0,0.0,0,0,0.0,0,0,0,0,0,0

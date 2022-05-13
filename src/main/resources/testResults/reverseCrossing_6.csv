@@ -1,6 +1,0 @@
-Id,Technique,Given Phrase,Typed Phrase,Minimum String Distance,Error Rate,Tempo (s),Characters written (including spaces),Words Written,WPM,Deleted letters,Deleted words,secondRow,thirdRow,fourthRow,wordsRow
-6,Reverse Crossing,MAKE MY DAY YOU SUCKER,MAKE MY DAY,11,50.0,40.7449635,11,3,4.417723923105244,2,1,2,3,1,3
-6,Reverse Crossing,IT IS VERY WINDY TODAY,,22,100.0,0.0,0,0,0.0,0,0,0,0,0,0
-6,Reverse Crossing,EVERYBODY LOOSES IN CUSTODY BATTLES,,35,100.0,0.0,0,0,0.0,0,0,0,0,0,0
-6,Reverse Crossing,THE CHAMBER MAKES IMPORTANT DECISIONS,,37,100.0,0.0,0,0,0.0,0,0,0,0,0,0
-6,Reverse Crossing,PREPARE FOR THE EXAM IN ADVANCE,,31,100.0,0.0,0,0,0.0,0,0,0,0,0,0

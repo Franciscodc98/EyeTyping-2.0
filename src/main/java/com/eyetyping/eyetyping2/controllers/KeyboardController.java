@@ -692,6 +692,7 @@ public class KeyboardController implements Initializable {
         wordsToWrite.setText("Finished, thank you!");
         wordsWritten.setText("");
         dataService.incrementUserId();
+        canWrite = false;
     }
 
 }
