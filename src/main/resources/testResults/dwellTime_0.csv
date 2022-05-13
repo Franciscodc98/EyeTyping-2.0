@@ -1,0 +1,6 @@
+Id,Technique,Given Phrase,Typed Phrase,Minimum String Distance,Error Rate,Tempo (s),Characters written (including spaces),Words Written,WPM,Deleted letters,Deleted words,secondRow,thirdRow,fourthRow,wordsRow
+0,Dwell Time,DO NOT WALK TOO QUICKLY,DO NOT WALK TO QUICKLY,1,4.3478260869565215,30.7315169,22,5,9.761965248126101,0,0,1,0,1,4
+0,Dwell Time,TICKETS ARE VERY EXPENSIVE,,26,100.0,0.0,0,0,0.0,0,0,0,0,0,0
+0,Dwell Time,THE BUS WAS VERY CROWDED,,24,100.0,0.0,0,0,0.0,0,0,0,0,0,0
+0,Dwell Time,GUN POWDER MUST BE HANDLED WITH CARE,,36,100.0,0.0,0,0,0.0,0,0,0,0,0,0
+0,Dwell Time,IF DIPLOMACY DOES NOT WORK,,26,100.0,0.0,0,0,0.0,0,0,0,0,0,0
