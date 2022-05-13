@@ -1,7 +1,6 @@
 package com.eyetyping.eyetyping2.services;
 
 import com.eyetyping.eyetyping2.enums.GroupNames;
-import com.eyetyping.eyetyping2.enums.VariableGroups;
 import com.eyetyping.eyetyping2.utils.FileWriter;
 import com.eyetyping.eyetyping2.utils.GlobalVariables;
 import lombok.Getter;
@@ -78,7 +77,6 @@ public class DataService{
         if(!dataset.isEmpty()) {
             String phrase = dataset.remove(random.nextInt(dataset.size()));
             orderedPhrasesUsed.add(phrase);
-            totalPhrasesRetrieved+=1;
             return phrase;
         }
         throw new NoSuchElementException("Phrase dataset is empty");
@@ -99,7 +97,6 @@ public class DataService{
     public void startTimer(){
         startTime = System.nanoTime();
         lastTypedTime = startTime;
-        started = true;
     }
 
     public void lastTypedTime(){
@@ -114,44 +111,55 @@ public class DataService{
 
 
     public void saveDataToCsv(List<String> data){
-        try(FileWriter writer = new FileWriter("src/main/resources/testResults/" + userId + ".csv", true)){
-            if (writer.isFileEmpty())
-                writer.writeDataFromListToCsv(Arrays.stream(getCsvHeader()).toList());
-            writer.writeDataFromListToCsv(data);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } finally {
-            totalWordDeletes = 0;
-            totalLetterDeletes = 0;
-            accessesData.forEach((s, integer) -> accessesData.replace(s, 0));
+        if(!finished){
+            try(FileWriter writer = new FileWriter("src/main/resources/testResults/reverseCrossing_" + userId + ".csv", true)){
+                if (writer.isFileEmpty()) {
+                    writer.writeDataFromListToCsv(Arrays.stream(getCsvHeader()).toList());
+                }
+                writer.writeDataFromListToCsv(data);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } finally {
+                totalWordDeletes = 0;
+                totalLetterDeletes = 0;
+                accessesData.forEach((s, integer) -> accessesData.replace(s, 0));
+            }
         }
     }
 
     private String [] getCsvHeader(){
-        String headerAux = "Id, Given Phrase, Typed Phrase, Error metric 1, Error metric 2, Tempo (s), Characters written (including spaces), Words Written, WPM, Deleted letters, Deleted words";
+        String headerAux = "Id, Technique, Given Phrase, Typed Phrase, Minimum String Distance, Error Rate, Tempo (s), Characters written (including spaces), Words Written, WPM, Deleted letters, Deleted words";
         String[] both = Arrays.copyOf(headerAux.split(", "), headerAux.split(", ").length + accessesData.keySet().toArray(new String[0]).length);
         System.arraycopy(accessesData.keySet().toArray(new String[0]), 0, both, headerAux.split(", ").length, accessesData.keySet().toArray(new String[0]).length);
         return both;
     }
 
     public List<String> csvLineData(String originalPhrase, String typedPhrase){
+        String fixedTypedPhrase = fixTypedPhrase(typedPhrase);
         double seconds = (lastTypedTime - startTime)/1_000_000_000D;
-        int words = calculateWordsTyped(typedPhrase);
+        int words = calculateWordsTyped(fixedTypedPhrase);
         double wpm = (seconds/60) == 0 ? 0 : words/(seconds/60);
         List<String> data = new ArrayList<>();
         data.add(String.valueOf(userId));
+        data.add("Reverse Crossing");
         data.add(originalPhrase);
-        data.add(typedPhrase);
-        data.add(String.valueOf(0)); //Error metric 1
-        data.add(String.valueOf(0)); //Error metric 2
+        data.add(fixedTypedPhrase);
+        data.add(String.valueOf(calculateMSD(originalPhrase, fixedTypedPhrase)));
+        data.add(String.valueOf(msdErrorRate(originalPhrase, fixedTypedPhrase)));
         data.add(String.valueOf(seconds));
-        data.add(String.valueOf(typedPhrase.length()));
+        data.add(String.valueOf(fixedTypedPhrase.length()));
         data.add(String.valueOf(words));
         data.add(String.valueOf(wpm));
         data.add(String.valueOf(totalLetterDeletes));
         data.add(String.valueOf(totalWordDeletes));
         accessesData.forEach((k, v) -> data.add(String.valueOf(v)));
         return data;
+    }
+
+    private double msdErrorRate(String str1, String str2){
+        int msd = calculateMSD(str1, str2);
+        double max = Math.max(str1.length(), str2.length());
+        return (msd/max)*100;
     }
 
     private int calculateWordsTyped(String phrase){
@@ -162,12 +170,49 @@ public class DataService{
             return 0;
     }
 
-    public static void main(String[] args) {
-        DataService dataService = DataService.getInstance();
-        //Arrays.stream(dataService.getCsvHeader()).iterator().forEachRemaining(System.out::println);
-        System.out.println(dataService.getUserId());
+    private String fixTypedPhrase(String str){
+        StringBuilder sb = new StringBuilder(str);
+        if(str.length()>1 && str.charAt(str.length()-1) == ' ')
+            sb.replace(str.length()-1,str.length(), "");
+        return sb.toString();
     }
 
+    private int calculateMSD(String x, String y) {
+        int[][] dp = new int[x.length() + 1][y.length() + 1];
 
+        for (int i = 0; i <= x.length(); i++) {
+            for (int j = 0; j <= y.length(); j++) {
+                if (i == 0) {
+                    dp[i][j] = j;
+                }
+                else if (j == 0) {
+                    dp[i][j] = i;
+                }
+                else {
+                    dp[i][j] = min(dp[i - 1][j - 1]
+                                    + costOfSubstitution(x.charAt(i - 1), y.charAt(j - 1)),
+                            dp[i - 1][j] + 1,
+                            dp[i][j - 1] + 1);
+                }
+            }
+        }
+
+        return dp[x.length()][y.length()];
+    }
+
+    //complement to MSD
+    private int costOfSubstitution(char a, char b) {
+        return a == b ? 0 : 1;
+    }
+
+    //complement to MSD
+    private int min(int... numbers) {
+        return Arrays.stream(numbers)
+                .min().orElse(Integer.MAX_VALUE);
+    }
+
+    public void incrementTotalPhrasesRetried() {
+        totalPhrasesRetrieved++;
+    }
 
 }

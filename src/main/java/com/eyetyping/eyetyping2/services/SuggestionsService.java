@@ -8,7 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-@Data
 public class SuggestionsService {
 
     private static SuggestionsService singleton = null;
@@ -21,6 +20,15 @@ public class SuggestionsService {
 
     public List<String> getSuggestionList(String text) {
         return allWords.stream().filter(word -> word.startsWith(text.toLowerCase())).filter(word -> word.length() > 1).map(String::toUpperCase).toList();
+    }
+
+    public List<String> getSuggestionListForSuggestedLetters(String typedText, String buttonText) {
+        String currentTextWithButton = typedText + buttonText;
+        return allWords.stream()
+                .filter(word -> word.startsWith(currentTextWithButton.toLowerCase()))
+                .filter(word -> word.length() > 1)
+                .map(word -> word.substring(typedText.length()))
+                .map(String::toUpperCase).toList();
     }
 
     public List<String> sortedMostCommonSubstrings(List<String> allWords, int indexes){
@@ -54,12 +62,5 @@ public class SuggestionsService {
     }
 
     public static void main(String[] args) {
-        //getInstance().generateSuggestedSubstring("he").forEach(System.out::println);
-        List<String> test = getInstance().sortedMostCommonSubstrings(getInstance().getSuggestionList("V"), 2);
-        for (String s :
-                test) {
-            System.out.println(s);
-        }
-
     }
 }

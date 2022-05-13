@@ -88,45 +88,13 @@ public class WritingService {
         return sb.toString();
     }
 
-    private String getTextStringFromCharList(List<Character> characterList) {
-        StringBuilder sb = new StringBuilder();
-        for (Character c: characterList)
-            sb.append(c);
-        return sb.toString();
-    }
-
-    public List<String> getWordsWrittenList(){
-        return Arrays.stream(getTextString().split(" ")).toList();
-    }
-
-    public int getTotalWordsWritten(){
-        int total = 0;
-        for (String s: writtenPhrases) {
-            String [] split = s.split(" ");
-            if(!split[0].isEmpty())
-                total += split.length;
-        }
-        return total;
-    }
-
     public void nextPhrase(){
         writtenPhrases.add(getTextString());
         writtenText.clear();
     }
 
-
-    public static void main(String[] args) {
-        WritingService service = WritingService.getInstance();
-        service.addWord("Hello word I need there");
-        service.addLetters("h");
-        service.addWord("heyy.");
-        service.nextPhrase();
-        service.addWord("Fcing shit");
-        service.addLetters("h");
-        service.addWord("hahahah.");
-        service.nextPhrase();
-
-        service.getWrittenPhrases().forEach(System.out::println);
-        System.out.println(service.getTotalWordsWritten());
+    public void clearWrittenText(){
+        writtenText.clear();
     }
+
 }

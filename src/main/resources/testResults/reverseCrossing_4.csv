@@ -1,0 +1,6 @@
+Id,Technique,Given Phrase,Typed Phrase,Minimum String Distance,Error Rate,Tempo (s),Characters written (including spaces),Words Written,WPM,Deleted letters,Deleted words,secondRow,thirdRow,fourthRow,wordsRow
+4,Reverse Crossing,THIS CAMERA TAKES NICE PHOTOGRAPHS,VOTE ACCORD,28,82.35294117647058,0.0,11,2,0.0,1,1,1,1,1,2
+4,Reverse Crossing,I CAN PLAY MUCH BETTER NOW,,26,100.0,0.0,0,0,0.0,0,0,0,0,0,0
+4,Reverse Crossing,HE IS SHOUTING LOUDLY,,21,100.0,0.0,0,0,0.0,0,0,0,0,0,0
+4,Reverse Crossing,CALL FOR MORE DETAILS,,21,100.0,0.0,0,0,0.0,0,0,0,0,0,0
+4,Reverse Crossing,BEAUTIFUL PAINTINGS IN THE GALLERY,,34,100.0,0.0,0,0,0.0,0,0,0,0,0,0

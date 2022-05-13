@@ -1,0 +1,6 @@
+Id,Technique,Given Phrase,Typed Phrase,Minimum String Distance,Error Rate,Tempo (s),Characters written (including spaces),Words Written,WPM,Deleted letters,Deleted words,secondRow,thirdRow,fourthRow,wordsRow
+5,Reverse Crossing,YOU ARE A WONDERFUL EXAMPLE,GHANA ,24,88.88888888888889,25.9910834,6,1,2.3084839933990593,2,6,3,3,1,3
+5,Reverse Crossing,ALL TOGETHER IN ONE BIG PILE,,28,100.0,0.0,0,0,0.0,0,0,0,0,0,0
+5,Reverse Crossing,BANK TRANSACTION WAS NOT REGISTERED,,35,100.0,0.0,0,0,0.0,0,0,0,0,0,0
+5,Reverse Crossing,BREATHING IS DIFFICULT,,22,100.0,0.0,0,0,0.0,0,0,0,0,0,0
+5,Reverse Crossing,A STEEP LEARNING CURVE IN RIDING A UNICYCLE,,43,100.0,0.0,0,0,0.0,0,0,0,0,0,0

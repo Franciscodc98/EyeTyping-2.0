@@ -18,9 +18,6 @@ public class GroupButton extends Button {
     //split gaze margin
     private static final long SLIP_MARGIN = 250;
 
-    private Timer timer = new Timer();
-    private TimerTask slipMargin;
-
     public GroupButton(String text){
         super(text);
         loadCss();

@@ -2,13 +2,12 @@ package com.eyetyping.eyetyping2.controllers;
 
 import com.eyetyping.eyetyping2.customComponets.*;
 import com.eyetyping.eyetyping2.enums.VariableGroups;
-import com.eyetyping.eyetyping2.eyetracker.Connections;
 import com.eyetyping.eyetyping2.services.DataService;
-import com.eyetyping.eyetyping2.services.MouseService;
 import com.eyetyping.eyetyping2.services.SuggestionsService;
 import com.eyetyping.eyetyping2.services.WritingService;
 import com.eyetyping.eyetyping2.utils.ButtonsUtils;
 import com.eyetyping.eyetyping2.enums.GroupNames;
+import com.eyetyping.eyetyping2.utils.GlobalVariables;
 import com.eyetyping.eyetyping2.utils.WindowDimensions;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -18,10 +17,12 @@ import javafx.scene.control.Button;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.media.AudioClip;
 import javafx.scene.shape.Line;
 import lombok.Data;
 
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,6 +32,7 @@ public class KeyboardController implements Initializable {
     public static final String SPACE = "SPACE";
 
     private boolean canWrite = false;
+    private boolean training = false;
 
     private static final VariableGroups GROUP_VARIABLE = VariableGroups.MEDIUM_GROUPS;
     private static final int SESSION_NUMBER = 1;
@@ -39,19 +41,10 @@ public class KeyboardController implements Initializable {
     private final SuggestionsService suggestionsService = SuggestionsService.getInstance();
     private final WritingService writingService = WritingService.getInstance();
     private final DataService dataService = DataService.getInstance();
-    private final MouseService mouseService = MouseService.getSingleton();
 
-    private Connections connections = new Connections();
-    private static final boolean CONNECT_SERVER = false; //alterar aqui se for para ligar o servidor do eyetracker ou nao
-
-
-    private static final int TIME = 10;
-
-    private int TOTAL_GROUPS;
-    private int TOTAL_SECUNDARY_GROUPS;
-    private int TOTAL_BUTTONS_PER_ROW;
-    private static int WORDS_MARGIN = 20;
-    private VariableGroups variableGroups = null;
+    private static final int TOTAL_GROUPS = 6;
+    private static final int SIDE_MARGIN = 0;
+    private static final int WORDS_MARGIN = 20;
     private List<SecondaryButton> suggestedWordsButtons = new ArrayList<>();
     private List<GroupButton> groupsButtonList = new ArrayList<>();
     private final HashMap<String, SecondaryButton> alphabetButtons = new HashMap<>();
@@ -87,22 +80,14 @@ public class KeyboardController implements Initializable {
     //split gaze margin
     private static final long SLIP_MARGIN = 250;
 
+    //sound
+    private AudioClip buzzer = new AudioClip(Paths.get(GlobalVariables.CONFIRM_SOUND_PATH).toUri().toString());
+
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        calculateGroupsSize(); //Alterar isto para os diferentes tipos de layout
         setupButtons();
         addRootAnchorListeners();
-        mouseService.setKeyboardController(this);
-        mouseService.setWindowDimensions(windowDimensions);
-    }
-
-    private void calculateGroupsSize(){
-        this.variableGroups = KeyboardController.GROUP_VARIABLE;
-        if(KeyboardController.GROUP_VARIABLE.getVariableGroupName().equals(VariableGroups.BIG_GROUPS.getVariableGroupName()))
-            TOTAL_GROUPS = 4;
-        else
-            TOTAL_GROUPS = 6;
     }
 
     private void setupButtons(){
@@ -114,7 +99,7 @@ public class KeyboardController implements Initializable {
     }
 
     private void setupGroupButtons() {
-        groupsButtonList = ButtonsUtils.createGroupButtons(variableGroups, TOTAL_GROUPS);
+        groupsButtonList = ButtonsUtils.createGroupButtons(GROUP_VARIABLE, TOTAL_GROUPS);
         int widthAux = 0;
         for (Button button : groupsButtonList) {
             button.setPrefSize(buttonWidth,buttonHeight);
@@ -174,7 +159,6 @@ public class KeyboardController implements Initializable {
         rootAnchor.getChildren().add(separator);
         rootAnchor.getChildren().add(wordsToWrite);
         rootAnchor.getChildren().add(wordsWritten);
-        wordsToWrite.setText(dataService.getPhraseFromDataset());
     }
 
     private void setDeleteButtons(){
@@ -336,7 +320,7 @@ public class KeyboardController implements Initializable {
     }
 
     private void fillSuggestedWords(SecondaryButton button, String groupName){
-        List<String> suggestedLetters = suggestionsService.getSuggestionList(button.getText());
+        List<String> suggestedLetters = suggestionsService.getSuggestionListForSuggestedLetters(writingService.getCurrentTypingWord(), button.getText());
         if(!suggestedLetters.isEmpty()){
             if(groupName.equals(GroupNames.THIRD_ROW.getGroupName())){
                 int i = 0;
@@ -504,6 +488,7 @@ public class KeyboardController implements Initializable {
 
     private void checkReverseCrossing(SecondaryButton button){
         if(openReverse!= null && openReverse.isReverseCrossing() && button.equals(openReverse.getParentButton()) && canWrite){
+            buzzer.play(0.1);
             String buttonText = button.getText();
                 if(button.getGroupName().equals(GroupNames.WORDS_ROW.getGroupName())){
                     if(!button.getText().equals("")){ //se a palavra não for string vazia
@@ -522,6 +507,7 @@ public class KeyboardController implements Initializable {
                         }
                         case "Del letter" -> {
                             wordsWritten.setText(writingService.deleteLetter().stream().map(c -> Character.toString(c)).collect(Collectors.joining()) + "|");
+                            updateSuggestedWordsOnReverseCrossing();
                             dataService.incrementLetterDeletes();
                             openReverse.clearBackground();
                         }
@@ -634,7 +620,6 @@ public class KeyboardController implements Initializable {
             windowDimensions.setHeight(newValue.doubleValue());
             resizeTextAreaContent();
             resizeButtons();
-            mouseService.setWindowDimensions(windowDimensions);
         });
         rootAnchor.widthProperty().addListener((observable, oldValue, newValue) -> {
             screenWidth = newValue.doubleValue();
@@ -642,22 +627,37 @@ public class KeyboardController implements Initializable {
             windowDimensions.setWidth(newValue.doubleValue());
             resizeTextAreaContent();
             resizeButtons();
-            mouseService.setWindowDimensions(windowDimensions);
         });
     }
 
     public void setKeyListener() {
         mainScene.setOnKeyPressed(event -> {
-            if(event.getCode() == KeyCode.BACK_SPACE && !canWrite)
+            if(event.getCode() == KeyCode.BACK_SPACE && !training && !dataService.isStarted()){
+                wordsWritten.setTimerOnFeedback(false);
+                wordsToWrite.setText(dataService.getPhraseFromDataset());
+                training = true;
+            }else if(event.getCode() == KeyCode.BACK_SPACE && training && !canWrite && !dataService.isStarted()) {
                 canWrite = true;
-            else if(event.getCode() == KeyCode.BACK_SPACE && canWrite)
+                wordsWritten.setTimerOnFeedback(true);
+                emptyRecommendedWords();
+                clearAllPopupButtons();
+            }else if(event.getCode() == KeyCode.BACK_SPACE && training && canWrite && !dataService.isStarted()){
                 canWrite = false;
-
-            if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() < 5){
-                controlPressed();
-            }else if(event.getCode() == KeyCode.CONTROL){
-                finished();
+                wordsWritten.setTimerOnFeedback(false);
+                wordsToWrite.setText(dataService.getPhraseFromDataset());
+                wordsWritten.setText("");
+                writingService.clearWrittenText();
             }
+
+            if(event.getCode() == KeyCode.CONTROL && !dataService.isStarted()){
+                wordsWritten.setTimerOnFeedback(false);
+                dataService.setStarted(true);
+                wordsToWrite.setText(dataService.getPhraseFromDataset());
+                wordsWritten.setText("");
+                writingService.clearWrittenText();
+                dataService.incrementTotalPhrasesRetried();
+            }else if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() <= 5)
+                controlPressed();
         });
     }
 
@@ -669,20 +669,26 @@ public class KeyboardController implements Initializable {
             canWrite = true;
             emptyRecommendedWords();
             clearAllPopupButtons();
-            clearReverseButton();
-            unfocusAllButtons();
         }else{
-            dataService.setPaused(true);
-            wordsWritten.setTimerOnFeedback(false);
-            dataService.saveDataToCsv(dataService.csvLineData(wordsToWrite.getText(), writingService.getTextString()));
-            wordsToWrite.setText(dataService.getPhraseFromDataset());
-            writingService.nextPhrase();
-            wordsWritten.setText("");
-            canWrite = false;
+            if(dataService.getTotalPhrasesRetrieved() < 5){
+                dataService.setPaused(true);
+                wordsWritten.setTimerOnFeedback(false);
+                dataService.saveDataToCsv(dataService.csvLineData(wordsToWrite.getText(), writingService.getTextString()));
+                wordsToWrite.setText(dataService.getPhraseFromDataset());
+                dataService.incrementTotalPhrasesRetried();
+                writingService.nextPhrase();
+                wordsWritten.setText("");
+                canWrite = false;
+            }else{
+                dataService.saveDataToCsv(dataService.csvLineData(wordsToWrite.getText(), writingService.getTextString()));
+                wordsWritten.setTimerOnFeedback(false);
+                finished();
+            }
         }
     }
 
     private void finished(){
+        dataService.setFinished(true);
         wordsToWrite.setText("Finished, thank you!");
         wordsWritten.setText("");
         dataService.incrementUserId();

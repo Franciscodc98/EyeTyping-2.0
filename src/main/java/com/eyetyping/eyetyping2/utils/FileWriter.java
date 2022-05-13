@@ -5,7 +5,6 @@ import java.io.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Data
 public class FileWriter implements Closeable {
 
 	private PrintWriter pw;
@@ -18,12 +17,6 @@ public class FileWriter implements Closeable {
 
 	public void writePhrase(String phrase){
 		pw.println(phrase);
-		pw.flush();
-	}
-
-	public void writePhrases(List<String> phrases){
-		for (String phrase : phrases)
-			pw.println(phrase);
 		pw.flush();
 	}
 
