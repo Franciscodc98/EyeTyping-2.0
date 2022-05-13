@@ -9,6 +9,7 @@ import com.eyetyping.eyetyping2.services.SuggestionsService;
 import com.eyetyping.eyetyping2.services.WrittingService;
 import com.eyetyping.eyetyping2.utils.ButtonsUtils;
 import com.eyetyping.eyetyping2.enums.GroupNames;
+import com.eyetyping.eyetyping2.utils.GlobalVariables;
 import com.eyetyping.eyetyping2.utils.Maths;
 import com.eyetyping.eyetyping2.utils.WindowDimensions;
 import javafx.application.Platform;
@@ -19,10 +20,15 @@ import javafx.scene.control.Button;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.media.AudioClip;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
 import javafx.scene.shape.Line;
 import lombok.Data;
 
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,6 +38,7 @@ public class KeyboardController implements Initializable {
     public static final String SPACE = "SPACE";
 
     private boolean canWrite = false;
+    private boolean training = false;
 
     //User data
     private static final String USERNAME = "Francisco Cardoso";
@@ -42,19 +49,16 @@ public class KeyboardController implements Initializable {
     private final SuggestionsService suggestionsService = SuggestionsService.getInstance();
     private final WrittingService writingService = WrittingService.getInstance();
     private final DataService dataService = DataService.getInstance();
-    private final MouseService mouseService = MouseService.getSingleton();
 
     private Connections connections = new Connections();
     private static final boolean CONNECT_SERVER = false; //alterar aqui se for para ligar o servidor do eyetracker ou nao
 
     private static final int TIME = 10;
 
-    private static int TOTAL_GROUPS;
-    private static int TOTAL_SECUNDARY_GROUPS;
-    private static int TOTAL_BUTTONS_PER_ROW;
-    private static int SIDE_MARGIN = 0;
-    private static int WORDS_MARGIN = 20;
-    private VariableGroups variableGroups = null;
+    private static final int TOTAL_GROUPS = 6;
+    private static final int SIDE_MARGIN = 0;
+    private static final int WORDS_MARGIN = 20;
+    private VariableGroups variableGroups = VariableGroups.MEDIUM_GROUPS;
     private List<SecondaryButton> suggestedWordsButtons = new ArrayList<>();
     private List<GroupButton> groupsButtonList = new ArrayList<>();
     private final HashMap<String, SecondaryButton> alphabetButtons = new HashMap<>();
@@ -88,28 +92,19 @@ public class KeyboardController implements Initializable {
     private TextWrittenLabel wordsWritten;
 
     //dwell time
-    private static final double DWELL_TIME = 500; //dwell time for selection in ms
+    private static final double DWELL_TIME = 800; //dwell time for selection in ms
     private Timer timer = new Timer();
     private TimerTask progressBarProgress;
     private TimerTask slipMargin;
     private double progressTimerAux = 0;
 
+    private AudioClip buzzer = new AudioClip(Paths.get(GlobalVariables.CONFIRM_SOUND_PATH).toUri().toString());
+
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        calculateGroupsSize();
         setupButtons();
         addRootAnchorListeners();
-        mouseService.setKeyboardController(this);
-        mouseService.setWindowDimensions(windowDimensions);
-    }
-
-    private void calculateGroupsSize(){
-        this.variableGroups = KeyboardController.GROUPS;
-        if(KeyboardController.GROUPS.getVariableGroupName().equals(VariableGroups.BIG_GROUPS.getVariableGroupName()))
-            TOTAL_GROUPS = 4;
-        else
-            TOTAL_GROUPS = 6;
     }
 
     private void setupButtons(){
@@ -190,7 +185,6 @@ public class KeyboardController implements Initializable {
         rootAnchor.getChildren().add(wordsWritten);
         rootAnchor.getChildren().addAll(deleteOptions);
         rootAnchor.getChildren().add(spaceButton);
-        wordsToWrite.setText(dataService.getPhraseFromDataset());
     }
 
     private void groupsButtonEnterEvent(MouseEvent mouseEvent) {
@@ -312,6 +306,7 @@ public class KeyboardController implements Initializable {
                         if (progress < 1.0) {
                             secondaryButton.setProgress(progress);
                         } else {
+                            buzzer.play(0.1);
                             String buttonText = secondaryButton.getText();
                             secondaryButton.updateBackgroundColor();
                             if (!secondaryButton.getGroupName().equals("delete")) {
@@ -393,7 +388,7 @@ public class KeyboardController implements Initializable {
     }
 
     private void fillSuggestedWords(SecondaryButton button, String groupName){
-        List<String> suggestedLetters = suggestionsService.getSuggestionList(button.getText());
+        List<String> suggestedLetters = suggestionsService.getSuggestionListForSuggestedLetters(writingService.getCurrentTypingWord(), button.getText());
         if(!suggestedLetters.isEmpty()){
             if(groupName.equals(GroupNames.THIRD_ROW.getGroupName())){
                 int i = 0;
@@ -542,7 +537,6 @@ public class KeyboardController implements Initializable {
             windowDimensions.setHeight(newValue.doubleValue());
             resizeTextAreaContent();
             resizeButtons();
-            mouseService.setWindowDimensions(windowDimensions);
         });
         rootAnchor.widthProperty().addListener((observable, oldValue, newValue) -> {
             screenWidth = newValue.doubleValue();
@@ -550,22 +544,31 @@ public class KeyboardController implements Initializable {
             windowDimensions.setWidth(newValue.doubleValue());
             resizeTextAreaContent();
             resizeButtons();
-            mouseService.setWindowDimensions(windowDimensions);
         });
     }
 
     public void setKeyListener() {
         mainScene.setOnKeyPressed(event -> {
-            if(event.getCode() == KeyCode.BACK_SPACE && !canWrite)
+            if(event.getCode() == KeyCode.BACK_SPACE && !training && !dataService.isStarted()){
+                wordsWritten.setTimerOnFeedback(false);
+                wordsToWrite.setText(dataService.getPhraseFromDataset());
+                training = true;
+            }else if(event.getCode() == KeyCode.BACK_SPACE && training && !canWrite && !dataService.isStarted()) {
                 canWrite = true;
-            else if(event.getCode() == KeyCode.BACK_SPACE && canWrite)
+                wordsWritten.setTimerOnFeedback(true);
+            }else if(event.getCode() == KeyCode.BACK_SPACE && training && canWrite && !dataService.isStarted()){
                 canWrite = false;
-
-            if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() <= 5){
-                controlPressed();
-            }else if(event.getCode() == KeyCode.CONTROL){
-                finished();
+                wordsWritten.setTimerOnFeedback(false);
+                wordsToWrite.setText(dataService.getPhraseFromDataset());
             }
+
+            if(event.getCode() == KeyCode.CONTROL && !dataService.isStarted()){
+                wordsWritten.setTimerOnFeedback(false);
+                dataService.setStarted(true);
+                wordsToWrite.setText(dataService.getPhraseFromDataset());
+                dataService.incrementTotalPhrasesRetried();
+            }else if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() <= 5)
+                controlPressed();
         });
     }
 
@@ -578,17 +581,25 @@ public class KeyboardController implements Initializable {
             emptyRecommendedWords();
             clearAllPopupButtons();
         }else{
-            dataService.setPaused(true);
-            wordsWritten.setTimerOnFeedback(false);
-            dataService.saveDataToCsv(dataService.csvLineData(wordsToWrite.getText(), writingService.getTextString()));
-            wordsToWrite.setText(dataService.getPhraseFromDataset());
-            writingService.nextPhrase();
-            wordsWritten.setText("");
-            canWrite = false;
+            if(dataService.getTotalPhrasesRetrieved() < 5){
+                dataService.setPaused(true);
+                wordsWritten.setTimerOnFeedback(false);
+                dataService.saveDataToCsv(dataService.csvLineData(wordsToWrite.getText(), writingService.getTextString()));
+                wordsToWrite.setText(dataService.getPhraseFromDataset());
+                dataService.incrementTotalPhrasesRetried();
+                writingService.nextPhrase();
+                wordsWritten.setText("");
+                canWrite = false;
+            }else{
+                dataService.saveDataToCsv(dataService.csvLineData(wordsToWrite.getText(), writingService.getTextString()));
+                wordsWritten.setTimerOnFeedback(false);
+                finished();
+            }
         }
     }
 
     private void finished(){
+        dataService.setFinished(true);
         wordsToWrite.setText("Finished, thank you!");
         wordsWritten.setText("");
         dataService.incrementUserId();

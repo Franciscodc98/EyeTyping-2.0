@@ -14,6 +14,8 @@ public class GlobalVariables {
 
     public static final String WORDS_20K_PATH = "src/main/resources/Top20kEnglishWords";
 
+    public static final String CONFIRM_SOUND_PATH = "src/main/resources/sounds/beep.wav";
+
 
 
 }

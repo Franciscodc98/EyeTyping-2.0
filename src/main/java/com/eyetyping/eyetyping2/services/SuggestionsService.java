@@ -23,6 +23,15 @@ public class SuggestionsService {
         return allWords.stream().filter(word -> word.startsWith(text.toLowerCase())).filter(word -> word.length() > 1).map(String::toUpperCase).toList();
     }
 
+    public List<String> getSuggestionListForSuggestedLetters(String typedText, String buttonText) {
+        String currentTextWithButton = typedText + buttonText;
+        return allWords.stream()
+                .filter(word -> word.startsWith(currentTextWithButton.toLowerCase()))
+                .filter(word -> word.length() > 1)
+                .map(word -> word.substring(typedText.length()))
+                .map(String::toUpperCase).toList();
+    }
+
     public List<String> sortedMostCommonSubstrings(List<String> allWords, int indexes){
         LinkedHashMap<String, Integer> count = new LinkedHashMap<>();
         for (String word: allWords) {
