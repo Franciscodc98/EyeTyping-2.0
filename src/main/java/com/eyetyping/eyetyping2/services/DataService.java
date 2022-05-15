@@ -128,7 +128,7 @@ public class DataService{
     }
 
     private String [] getCsvHeader(){
-        String headerAux = "Id, Technique, Given Phrase, Typed Phrase, Minimum String Distance, Error Rate, Tempo (s), Characters written (including spaces), Words Written, WPM, Deleted letters, Deleted words";
+        String headerAux = "Id, Technique, Phrase Number ,Given Phrase, Typed Phrase, Minimum String Distance, Error Rate, Tempo (s), Characters written (including spaces), Words Written, WPM, Deleted letters, Deleted words";
         String[] both = Arrays.copyOf(headerAux.split(", "), headerAux.split(", ").length + accessesData.keySet().toArray(new String[0]).length);
         System.arraycopy(accessesData.keySet().toArray(new String[0]), 0, both, headerAux.split(", ").length, accessesData.keySet().toArray(new String[0]).length);
         return both;
@@ -142,6 +142,7 @@ public class DataService{
         List<String> data = new ArrayList<>();
         data.add(String.valueOf(userId));
         data.add("Reverse Crossing");
+        data.add(String.valueOf(getTotalPhrasesRetrieved()));
         data.add(originalPhrase);
         data.add(fixedTypedPhrase);
         data.add(String.valueOf(calculateMSD(originalPhrase, fixedTypedPhrase)));
@@ -159,7 +160,7 @@ public class DataService{
     private double msdErrorRate(String str1, String str2){
         int msd = calculateMSD(str1, str2);
         double max = Math.max(str1.length(), str2.length());
-        return (msd/max)*100;
+        return (msd/max);
     }
 
     private int calculateWordsTyped(String phrase){

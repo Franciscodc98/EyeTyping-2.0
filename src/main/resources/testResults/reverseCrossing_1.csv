@@ -1,0 +1,6 @@
+Id,Technique,Phrase Number ,Given Phrase,Typed Phrase,Minimum String Distance,Error Rate,Tempo (s),Characters written (including spaces),Words Written,WPM,Deleted letters,Deleted words,secondRow,thirdRow,fourthRow,wordsRow
+1,Reverse Crossing,1,MY BIKE HAS A FLAT TIRE,HOME H,20,86.95652173913044,4.0285859,6,2,29.787127041277678,0,0,1,0,0,1
+1,Reverse Crossing,2,MOVIE ABOUT A NUTTY PROFESSOR,HOM,28,96.55172413793103,2.9985113,3,1,20.009929594062225,0,0,0,0,1,0
+1,Reverse Crossing,3,HANDS ON EXPERIENCE WITH A JOB,,30,100.0,0.0,0,0,0.0,0,0,0,0,0,0
+1,Reverse Crossing,4,WE BETTER INVESTIGATE THIS,,26,100.0,0.0,0,0,0.0,0,0,0,0,0,0
+1,Reverse Crossing,5,LIFE IS BUT A DREAM,,19,100.0,0.0,0,0,0.0,0,0,0,0,0,0

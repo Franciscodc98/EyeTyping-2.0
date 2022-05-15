@@ -56,7 +56,7 @@ public class ReverseCrossingButtons extends Button {
                       -fx-font-size:20;
                       -fx-border-color:black;
                       -fx-border-width: 3 3 3 3;
-                      -fx-background-color: palegreen;
+                      -fx-background-color: #CCE5FF;
                     """);
             }
             else {
@@ -64,7 +64,7 @@ public class ReverseCrossingButtons extends Button {
                        -fx-font-size:15;
                        -fx-border-color:black;
                        -fx-border-width: 1 1 1 1;
-                       -fx-background-color: palegreen;
+                       -fx-background-color: #CCE5FF;
                     """);
             }
         }else{
@@ -73,7 +73,7 @@ public class ReverseCrossingButtons extends Button {
                       -fx-font-size:15;
                       -fx-border-color:black;
                       -fx-border-width: 3 3 3 3;
-                      -fx-background-color: palegreen;
+                      -fx-background-color: #CCE5FF;
                     """);
             }
             else {
@@ -81,7 +81,7 @@ public class ReverseCrossingButtons extends Button {
                        -fx-font-size:15;
                        -fx-border-color:black;
                        -fx-border-width: 1 1 1 1;
-                       -fx-background-color: palegreen;
+                       -fx-background-color: #CCE5FF;
                     """);
             }
         }

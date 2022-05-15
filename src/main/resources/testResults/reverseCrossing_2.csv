@@ -1,0 +1,8 @@
+Id,Technique,Phrase Number ,Given Phrase,Typed Phrase,Minimum String Distance,Error Rate,Tempo (s),Characters written (including spaces),Words Written,WPM,Deleted letters,Deleted words,secondRow,thirdRow,fourthRow,wordsRow
+2,Reverse Crossing,1,IN SHARP CONTRAST TO YOUR WORDS,IN SHARP CONTRAST TO YOUR WORDS,0,0,145.0356803,31,6,2.482147836,8,2,5,3,1,8
+2,Reverse Crossing,2,THERE WILL BE SOME FOG TONIGHT,THERE WILL BE SOME FOG TONIGHT,0,0,63.1881703,30,6,5.69726894,0,0,2,1,0,5
+2,Reverse Crossing,3,SIX DAUGHTERS AND SEVEN SONS,,28,1,0,0,0,0,0,0,0,0,0,0
+2,Reverse Crossing,4,IMPORTANT FOR POLITICAL PARTIES,,31,1,0,0,0,0,0,0,0,0,0,0
+2,Reverse Crossing,5,NO MORE WAR NO MORE BLOODSHED,,29,1,0,0,0,0,0,0,0,0,0,0
+,,,,,2.482147836,,,,,,,,,,,
+,,,,,5.507359975,,,,,,,,,,,
