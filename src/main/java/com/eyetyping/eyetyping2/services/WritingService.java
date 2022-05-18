@@ -61,6 +61,18 @@ public class WritingService {
         return result;
     }
 
+    public int getLastWordLength(){
+        int length = 0;
+        String text = getTextString();
+        if(!writtenText.isEmpty()){
+            if(text.charAt(text.length()-1) == ' ')
+                length++;
+            String [] aux = text.split(" ");
+            length += aux[aux.length-1].length();
+        }
+        return length;
+    }
+
     public static WritingService getInstance(){
         if(singleton==null)
             singleton = new WritingService();

@@ -498,20 +498,24 @@ public class KeyboardController implements Initializable {
                         unfocusAllButtons();
                         clearAllPopupButtons();
                         dataService.lastTypedTime();
+                        dataService.incrementKeyStrokes(buttonText.length() + 1);
                     }
                 }else{
                     switch (buttonText) {
                         case SPACE ->{
                             setWrittenWordsText(" ", false);
                             openReverse.clearBackground();
+                            dataService.incrementKeyStrokes(1);
                         }
                         case "Del letter" -> {
                             wordsWritten.setText(writingService.deleteLetter().stream().map(c -> Character.toString(c)).collect(Collectors.joining()) + "|");
                             updateSuggestedWordsOnReverseCrossing();
                             dataService.incrementLetterDeletes();
                             openReverse.clearBackground();
+                            dataService.incrementKeyStrokes(1);
                         }
                         case "Del word" -> {
+                            dataService.incrementKeyStrokes(writingService.getLastWordLength());
                             wordsWritten.setText(writingService.deleteWord().stream().map(c -> Character.toString(c)).collect(Collectors.joining()) + "|");
                             dataService.incrementWordDeletes();
                             openReverse.clearBackground();
@@ -523,6 +527,7 @@ public class KeyboardController implements Initializable {
                             unfocusAllButtons();
                             clearAllPopupButtons();
                             dataService.lastTypedTime();
+                            dataService.incrementKeyStrokes(buttonText.length());
                         }
                     }
                 }
@@ -666,6 +671,7 @@ public class KeyboardController implements Initializable {
             wordsWritten.setTimerOnFeedback(true);
             dataService.startTimer();
             dataService.setPaused(false);
+            dataService.resetKeystrokes();
             canWrite = true;
             emptyRecommendedWords();
             clearAllPopupButtons();
@@ -675,6 +681,7 @@ public class KeyboardController implements Initializable {
                 wordsWritten.setTimerOnFeedback(false);
                 dataService.saveDataToCsv(dataService.csvLineData(wordsToWrite.getText(), writingService.getTextString()));
                 wordsToWrite.setText(dataService.getPhraseFromDataset());
+                System.out.println(dataService.getKeyStrokes());
                 dataService.incrementTotalPhrasesRetried();
                 writingService.nextPhrase();
                 wordsWritten.setText("");
