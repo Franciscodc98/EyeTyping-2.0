@@ -2,6 +2,7 @@ package com.eyetyping.eyetyping2.services;
 
 import lombok.Getter;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -58,6 +59,18 @@ public class WritingService {
         writtenText.clear();
         writtenText.addAll(result);
         return result;
+    }
+
+    public int getLastWordLength(){
+        int length = 0;
+        String text = getTextString();
+        if(!writtenText.isEmpty()){
+            if(text.charAt(text.length()-1) == ' ')
+                length++;
+            String [] aux = text.split(" ");
+            length += aux[aux.length-1].length();
+        }
+        return length;
     }
 
     public static WritingService getInstance(){
