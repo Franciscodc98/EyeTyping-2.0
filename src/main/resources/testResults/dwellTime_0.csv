@@ -1,5 +1,0 @@
-Id,Technique,Given Phrase,Typed Phrase,Minimum String Distance,Error Rate,Tempo (s),Characters written (including spaces),Words Written,WPM,Deleted letters,Deleted words,secondRow,thirdRow,fourthRow,wordsRow
-0,Dwell Time,THE ASSAULT TOOK SIX MONTHS,ANTONIO,22,81.48148148148148,4.0801184,7,1,14.705455606386327,0,0,0,0,0,1
-0,Dwell Time,CORRECT YOUR DICTION IMMEDIATELY,,32,100.0,3.6844909,0,0,0.0,0,1,0,0,0,1
-0,Dwell Time,ONE HECK OF A QUESTION,,22,100.0,5.064147,0,0,0.0,0,1,0,0,0,1
-0,Dwell Time,MOTIVATIONAL SEMINARS MAKE ME SICK,FOR,32,94.11764705882352,10.8758631,3,1,5.516803535344243,1,0,1,0,0,1

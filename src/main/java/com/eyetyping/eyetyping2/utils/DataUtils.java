@@ -10,7 +10,7 @@ public class DataUtils {
     //Entry speed
 
     public static double wordsPerMinute(int phraseLength, double timeInSeconds){
-        return ((Math.abs(phraseLength) - 1) / timeInSeconds) * 60 * (1 / 5D);
+        return ((Math.abs(phraseLength)) / timeInSeconds) * 60 * (1 / 5D);
     }
 
     /**
@@ -24,7 +24,7 @@ public class DataUtils {
     }
 
     public static double keystrokesPerSecond(int keystrokes, double timeInSeconds){
-        return (Math.abs(keystrokes)-1)/timeInSeconds;
+        return (Math.abs(keystrokes))/timeInSeconds;
     }
 
 

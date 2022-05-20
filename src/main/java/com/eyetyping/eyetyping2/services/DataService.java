@@ -132,7 +132,7 @@ public class DataService{
     }
 
     private String [] getCsvHeader(){
-        String headerAux = "Id, Technique, Given Phrase, Typed Phrase, Minimum String Distance, Error Rate, Tempo (s), Characters written (including spaces), Words Written, WPM, Deleted letters, Deleted words";
+        String headerAux = "Id, Technique, Phrase Number, Given Phrase, Typed Phrase, Minimum String Distance Error Rate, Keystrokes Per Character (KSPC) ,Tempo (s), Characters written (including spaces), Words Written, WPM, AWPM, Keystrokes Per Second(KSPS),Deleted letters, Deleted words";
         String[] both = Arrays.copyOf(headerAux.split(", "), headerAux.split(", ").length + accessesData.keySet().toArray(new String[0]).length);
         System.arraycopy(accessesData.keySet().toArray(new String[0]), 0, both, headerAux.split(", ").length, accessesData.keySet().toArray(new String[0]).length);
         return both;
@@ -140,30 +140,29 @@ public class DataService{
 
     public List<String> csvLineData(String originalPhrase, String typedPhrase){
         String fixedTypedPhrase = fixTypedPhrase(typedPhrase);
+        int totalCharsWritten = fixedTypedPhrase.length();
         double seconds = (lastTypedTime - startTime)/1_000_000_000D;
         int words = calculateWordsTyped(fixedTypedPhrase);
-        double wpm = (seconds/60) == 0 ? 0 : words/(seconds/60);
+        double wpm = wordsPerMinute(totalCharsWritten, seconds);
+        double msdErrorR = msdErrorRate(originalPhrase, fixedTypedPhrase);
         List<String> data = new ArrayList<>();
         data.add(String.valueOf(userId));
         data.add("Dwell Time");
+        data.add(String.valueOf(getTotalPhrasesRetrieved()));
         data.add(originalPhrase);
         data.add(fixedTypedPhrase);
-        data.add(String.valueOf(calculateMSD(originalPhrase, fixedTypedPhrase))); //Error metric 1
-        data.add(String.valueOf(msdErrorRate(originalPhrase, fixedTypedPhrase))); //Error metric 2
+        data.add(String.valueOf(msdErrorR)); //Error metric 2
+        data.add(String.valueOf(keystrokesPerCharacter(keyStrokes, totalCharsWritten)));
         data.add(String.valueOf(seconds));
-        data.add(String.valueOf(fixedTypedPhrase.length()));
+        data.add(String.valueOf(totalCharsWritten));
         data.add(String.valueOf(words));
         data.add(String.valueOf(wpm));
+        data.add(String.valueOf(adjustedWordsPerMinute(wpm, msdErrorR)));
+        data.add(String.valueOf(keystrokesPerSecond(keyStrokes, seconds)));
         data.add(String.valueOf(totalLetterDeletes));
         data.add(String.valueOf(totalWordDeletes));
         accessesData.forEach((k, v) -> data.add(String.valueOf(v)));
         return data;
-    }
-
-    private double msdErrorRate(String str1, String str2){
-        int msd = calculateMSD(str1, str2);
-        double max = Math.max(str1.length(), str2.length());
-        return (msd/max)*100;
     }
 
     private int calculateWordsTyped(String phrase){
