@@ -2,7 +2,6 @@ package com.eyetyping.eyetyping2.services;
 
 import lombok.Getter;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 

@@ -681,7 +681,6 @@ public class KeyboardController implements Initializable {
                 wordsWritten.setTimerOnFeedback(false);
                 dataService.saveDataToCsv(dataService.csvLineData(wordsToWrite.getText(), writingService.getTextString()));
                 wordsToWrite.setText(dataService.getPhraseFromDataset());
-                System.out.println(dataService.getKeyStrokes());
                 dataService.incrementTotalPhrasesRetried();
                 writingService.nextPhrase();
                 wordsWritten.setText("");
