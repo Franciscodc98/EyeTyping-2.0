@@ -17,7 +17,7 @@ public class DisplayTextLabel extends Label {
     public DisplayTextLabel(){
         super();
         super.setText("Text to write will appear here");
-        super.setFont(new Font("Arial", 24));
+        super.setFont(new Font("Arial", 20));
         super.setStyle("""
                         -fx-border-color: black;
                         -fx-border-width: 1;
