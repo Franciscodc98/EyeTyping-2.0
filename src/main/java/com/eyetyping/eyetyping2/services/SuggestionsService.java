@@ -1,7 +1,7 @@
 package com.eyetyping.eyetyping2.services;
 
 import com.eyetyping.eyetyping2.utils.GlobalVariables;
-import lombok.Data;
+import com.fasterxml.jackson.databind.ser.impl.WritableObjectId;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,7 +15,7 @@ public class SuggestionsService {
     private List<String> allWords = new ArrayList<>();
 
     private SuggestionsService(){
-        loadTop20kWords();
+        loadDictionaryWords(GlobalVariables.WORDS_333K_PATH);
     }
 
     public List<String> getSuggestionList(String text) {
@@ -47,13 +47,14 @@ public class SuggestionsService {
         return sortedList.stream().map(Map.Entry::getKey).toList();
     }
 
-    private void loadTop20kWords(){
+    private void loadDictionaryWords(String path){
         try {
-            allWords = Files.readAllLines(Paths.get(GlobalVariables.WORDS_20K_PATH));
+            allWords = Files.readAllLines(Paths.get(path));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     public static SuggestionsService getInstance(){
         if(singleton==null)
