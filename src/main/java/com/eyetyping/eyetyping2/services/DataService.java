@@ -83,7 +83,7 @@ public class DataService{
             orderedPhrasesUsed.add(phrase);
             return phrase;
         }
-        throw new NoSuchElementException("Phrase dataset is empty");
+        return "Dataset empty";
     }
 
     public void incrementGroupAccess(String groupName){
