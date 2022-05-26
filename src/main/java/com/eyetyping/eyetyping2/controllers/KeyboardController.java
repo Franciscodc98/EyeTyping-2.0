@@ -213,7 +213,7 @@ public class KeyboardController implements Initializable {
 
     private void secondaryButtonsEnterEvent(MouseEvent mouseEvent){
         SecondaryButton secondaryButton = (SecondaryButton)(mouseEvent.getSource());
-        startProgress(secondaryButton);
+        startProgress(secondaryButton, DWELL_TIME);
         updateSuggestionTimer(secondaryButton);
         slipMargin = new TimerTask() {
             @Override
@@ -238,7 +238,7 @@ public class KeyboardController implements Initializable {
 
     private void thirdRowButtonsEnterEvent(MouseEvent mouseEvent){
         SecondaryButton thirdRowButton = (SecondaryButton)(mouseEvent.getSource());
-        startProgress(thirdRowButton);
+        startProgress(thirdRowButton, DWELL_TIME);
         updateSuggestionTimer(thirdRowButton);
         slipMargin = new TimerTask() {
             @Override
@@ -260,7 +260,7 @@ public class KeyboardController implements Initializable {
 
     private void fourthRowButtonsEnterEvent(MouseEvent mouseEvent){
         SecondaryButton fourthRowButton = (SecondaryButton)(mouseEvent.getSource());
-        startProgress(fourthRowButton);
+        startProgress(fourthRowButton, DWELL_TIME);
         slipMargin = new TimerTask() {
             @Override
             public void run() {
@@ -280,18 +280,18 @@ public class KeyboardController implements Initializable {
     private void suggestedWordEnterEvent(MouseEvent mouseEvent){
         SecondaryButton wordButton = (SecondaryButton)(mouseEvent.getSource());
         if(!wordButton.getText().isEmpty()){
-            startProgress(wordButton);
+            startProgress(wordButton, 600);
             wordButton.setFocussed(true);
         }
     }
 
-    private void startProgress(SecondaryButton secondaryButton) {
+    private void startProgress(SecondaryButton secondaryButton, double time) {
         if(canWrite) {
             progressBarProgress = new TimerTask() {
                 @Override
                 public void run() {
                     Platform.runLater(() -> {
-                        double progress = Maths.normalizeBetween0and1(0, DWELL_TIME, progressTimerAux);
+                        double progress = Maths.normalizeBetween0and1(0, time, progressTimerAux);
                         if (progress < 1.0) {
                             secondaryButton.setProgress(progress);
                         } else {
