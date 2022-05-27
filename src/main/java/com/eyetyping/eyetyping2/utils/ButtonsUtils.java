@@ -4,7 +4,9 @@ import com.eyetyping.eyetyping2.customComponets.GroupButton;
 import com.eyetyping.eyetyping2.customComponets.SecondaryButton;
 import com.eyetyping.eyetyping2.enums.GroupNames;
 import com.eyetyping.eyetyping2.enums.VariableGroups;
+import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,5 +68,11 @@ public class ButtonsUtils {
             buttons.add(button);
         }
         return buttons;
+    }
+
+    public static Label createColoredText(String grayed){
+        Label str1 = new Label(grayed);
+        str1.setTextFill(Color.GRAY);
+        return str1;
     }
 }

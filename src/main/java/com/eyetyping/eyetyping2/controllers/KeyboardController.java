@@ -28,6 +28,8 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.eyetyping.eyetyping2.utils.ButtonsUtils.createColoredText;
+
 @Getter
 @Setter
 public class KeyboardController implements Initializable {
@@ -199,6 +201,7 @@ public class KeyboardController implements Initializable {
                         button.setPrefSize(buttonWidth, buttonHeight);
                         button.setLayoutX(widthAux);
                         button.setLayoutY(screenHeight- (2*buttonHeight));
+                        button.setGraphic(createColoredText(writingService.getCurrentTypingWord()));
                         widthAux+=buttonWidth;
                     }
                     rootAnchor.getChildren().addAll(recentSecondaryRowButtons);
@@ -388,32 +391,29 @@ public class KeyboardController implements Initializable {
             if(groupName.equals(GroupNames.THIRD_ROW.getGroupName())){
                 int i = 0;
                 List<String> suggestions = suggestionsService.sortedMostCommonSubstrings(suggestedLetters, 2);
-                for(SecondaryButton suggestion : thirdRowButtons){
-                    if(suggestions.size() > i){
-                        suggestion.setParentButton(button);
-                        suggestion.setText(suggestions.get(i));
-                        rootAnchor.getChildren().add(suggestion);
-                    } else{
-                        rootAnchor.getChildren().remove(suggestion);
-                    }
-                    i++;
-                }
+                fillSuggestionAux(button, suggestions, thirdRowButtons);
             } else if(groupName.equals(GroupNames.FOURTH_ROW.getGroupName())){
                 int i = 0;
                 List<String> suggestions = suggestionsService.sortedMostCommonSubstrings(suggestedLetters, 3);
-                for(SecondaryButton suggestion : forthRowButtons){
-                    if(suggestions.size() > i){
-                        suggestion.setParentButton(button);
-                        suggestion.setText(suggestions.get(i));
-                        rootAnchor.getChildren().add(suggestion);
-                    } else{
-                        rootAnchor.getChildren().remove(suggestion);
-                    }
-                    i++;
-                }
+                fillSuggestionAux(button, suggestions, forthRowButtons);
             }
         }
         resizeButtons();
+    }
+
+    private void fillSuggestionAux(SecondaryButton button, List<String> suggestions, List<SecondaryButton> buttonsRow) {
+        int i = 0;
+        for(SecondaryButton suggestion : buttonsRow){
+            if(suggestions.size() > i){
+                suggestion.setParentButton(button);
+                suggestion.setText(suggestions.get(i));
+                suggestion.setGraphic(createColoredText(writingService.getCurrentTypingWord()));
+                rootAnchor.getChildren().add(suggestion);
+            } else{
+                rootAnchor.getChildren().remove(suggestion);
+            }
+            i++;
+        }
     }
 
     private void updateSuggestedWords() {

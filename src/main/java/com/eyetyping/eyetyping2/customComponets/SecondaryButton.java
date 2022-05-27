@@ -1,6 +1,7 @@
 package com.eyetyping.eyetyping2.customComponets;
 
 import javafx.application.Platform;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.StackPane;
@@ -57,6 +58,10 @@ public class SecondaryButton extends StackPane {
 
     public String getText(){
         return label.getText();
+    }
+
+    public void setGraphic(Node node){
+        label.setGraphic(node);
     }
 
 
