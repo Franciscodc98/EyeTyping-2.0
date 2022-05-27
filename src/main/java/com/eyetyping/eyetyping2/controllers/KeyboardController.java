@@ -14,10 +14,13 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.media.AudioClip;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import lombok.Data;
 
@@ -25,6 +28,8 @@ import java.net.URL;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.eyetyping.eyetyping2.utils.ButtonsUtils.createColoredText;
 
 @Data
 public class KeyboardController implements Initializable {
@@ -195,6 +200,7 @@ public class KeyboardController implements Initializable {
                         button.setLayoutX(widthAux);
                         button.setLayoutY(screenHeight- (2*buttonHeight));
                         widthAux+=buttonWidth;
+                        button.setGraphic(createColoredText(writingService.getCurrentTypingWord()));
                     }
                     rootAnchor.getChildren().addAll(recentSecondaryRowButtons);
                     resizeButtons();
@@ -323,34 +329,29 @@ public class KeyboardController implements Initializable {
         List<String> suggestedLetters = suggestionsService.getSuggestionListForSuggestedLetters(writingService.getCurrentTypingWord(), button.getText());
         if(!suggestedLetters.isEmpty()){
             if(groupName.equals(GroupNames.THIRD_ROW.getGroupName())){
-                int i = 0;
                 List<String> suggestions = suggestionsService.sortedMostCommonSubstrings(suggestedLetters, 2);
-                for(SecondaryButton suggestion : thirdRowButtons){
-                    if(suggestions.size() > i){
-                        suggestion.setParentButton(button);
-                        suggestion.setText(suggestions.get(i));
-                        rootAnchor.getChildren().add(suggestion);
-                    } else{
-                        rootAnchor.getChildren().remove(suggestion);
-                    }
-                    i++;
-                }
+                suggestWordsAux(button, suggestions, thirdRowButtons);
             } else if(groupName.equals(GroupNames.FOURTH_ROW.getGroupName())){
-                int i = 0;
                 List<String> suggestions = suggestionsService.sortedMostCommonSubstrings(suggestedLetters, 3);
-                for(SecondaryButton suggestion : forthRowButtons){
-                    if(suggestions.size() > i){
-                        suggestion.setParentButton(button);
-                        suggestion.setText(suggestions.get(i));
-                        rootAnchor.getChildren().add(suggestion);
-                    } else{
-                        rootAnchor.getChildren().remove(suggestion);
-                    }
-                    i++;
-                }
+                suggestWordsAux(button, suggestions, forthRowButtons);
             }
         }
         resizeButtons();
+    }
+
+    private void suggestWordsAux(SecondaryButton button, List<String> suggestions, List<SecondaryButton> buttonsRow) {
+        int i = 0;
+        for(SecondaryButton suggestion : buttonsRow){
+            if(suggestions.size() > i){
+                suggestion.setParentButton(button);
+                suggestion.setText(suggestions.get(i));
+                suggestion.setGraphic(createColoredText(writingService.getCurrentTypingWord()));
+                rootAnchor.getChildren().add(suggestion);
+            } else{
+                rootAnchor.getChildren().remove(suggestion);
+            }
+            i++;
+        }
     }
 
     private void textAreaButtonsEnterEvent(MouseEvent mouseEvent){
