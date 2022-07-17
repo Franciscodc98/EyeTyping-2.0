@@ -116,7 +116,7 @@ public class DataService{
 
     public void saveDataToCsv(List<String> data){
         if(!finished){
-            try(FileWriter writer = new FileWriter("src/main/resources/testResults/reverseCrossing_" + userId + ".csv", true)){
+            try(FileWriter writer = new FileWriter("src/main/resources/testResults/reverseCrossing_results.csv", true)){
                 if (writer.isFileEmpty()) {
                     writer.writeDataFromListToCsv(Arrays.stream(getCsvHeader()).toList());
                 }
