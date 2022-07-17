@@ -596,7 +596,7 @@ public class KeyboardController implements Initializable {
             emptyRecommendedWords();
             clearAllPopupButtons();
         }else{
-            if(dataService.getTotalPhrasesRetrieved() < 5){
+            if(dataService.getTotalPhrasesRetrieved() < 8){
                 dataService.setPaused(true);
                 wordsWritten.setTimerOnFeedback(false);
                 dataService.saveDataToCsv(dataService.csvLineData(wordsToWrite.getText(), writingService.getTextString()));
