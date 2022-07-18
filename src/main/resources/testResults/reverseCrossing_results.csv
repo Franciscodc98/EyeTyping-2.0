@@ -1,0 +1,2 @@
+Id,Technique,Phrase Number,Given Phrase,Typed Phrase,Minimum String Distance Error Rate,Keystrokes Per Character (KSPC) ,Tempo (s),Characters written (including spaces),Words Written,WPM,AWPM,Keystrokes Per Second(KSPS),Deleted letters,Deleted words,secondRow,thirdRow,fourthRow,wordsRow
+5,Reverse Crossing,1,CANADA HAS TEN PROVINCES,CANADA HAS TEN PROVINCES,0.0,1.2916666666666667,66.1358227,24,4,4.354674792606761,4.354674792606761,0.46873235614864434,0,1,0,0,7,11
