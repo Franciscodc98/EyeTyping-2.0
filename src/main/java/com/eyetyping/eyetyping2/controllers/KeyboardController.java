@@ -662,7 +662,7 @@ public class KeyboardController implements Initializable {
                 wordsWritten.setText("");
                 writingService.clearWrittenText();
                 dataService.incrementTotalPhrasesRetried();
-            }else if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() <= 5)
+            }else if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() <= 8)
                 controlPressed();
         });
     }
