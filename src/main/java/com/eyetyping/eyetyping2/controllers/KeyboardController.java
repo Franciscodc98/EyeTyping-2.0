@@ -602,7 +602,6 @@ public class KeyboardController implements Initializable {
                 dataService.saveDataToCsv(dataService.csvLineData(wordsToWrite.getText(), writingService.getTextString()));
                 wordsToWrite.setText(dataService.getPhraseFromDataset());
                 dataService.incrementTotalPhrasesRetried();
-                System.out.println(dataService.getKeyStrokes());
                 writingService.nextPhrase();
                 wordsWritten.setText("");
                 canWrite = false;
