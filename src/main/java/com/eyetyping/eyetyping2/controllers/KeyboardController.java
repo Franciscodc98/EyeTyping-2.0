@@ -318,7 +318,9 @@ public class KeyboardController implements Initializable {
                                     }
                                 } else {//space
                                     setWrittenWordsText(" ", false);
+                                    emptyRecommendedWords();
                                     dataService.incrementKeyStrokes(1);
+
                                 }
                             } else {
                                 if (buttonText.equals("Delete letter")) {
@@ -581,7 +583,7 @@ public class KeyboardController implements Initializable {
                 wordsWritten.setText("");
                 writingService.clearWrittenText();
                 dataService.incrementTotalPhrasesRetried();
-            }else if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() <= 8)
+            }else if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() <= 5)
                 controlPressed();
         });
     }
@@ -596,7 +598,7 @@ public class KeyboardController implements Initializable {
             emptyRecommendedWords();
             clearAllPopupButtons();
         }else{
-            if(dataService.getTotalPhrasesRetrieved() < 8){
+            if(dataService.getTotalPhrasesRetrieved() < 5){
                 dataService.setPaused(true);
                 wordsWritten.setTimerOnFeedback(false);
                 dataService.saveDataToCsv(dataService.csvLineData(wordsToWrite.getText(), writingService.getTextString()));

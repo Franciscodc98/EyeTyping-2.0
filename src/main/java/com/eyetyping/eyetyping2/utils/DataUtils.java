@@ -19,8 +19,8 @@ public class DataUtils {
      * @param errorRateMSD error rate from MSD ranging from 0.0 to 1.0
      * @return adjusted words per minute
      */
-    public static double adjustedWordsPerMinute(double wordsPerMinute, double errorRateMSD){
-        return (wordsPerMinute * Math.pow((1 - errorRateMSD),1));
+    public static double adjustedWordsPerMinute(double wordsPerMinute, double errorRateMSD, int power){
+        return (wordsPerMinute * Math.pow((1 - errorRateMSD),power));
     }
 
     public static double keystrokesPerSecond(int keystrokes, double timeInSeconds){

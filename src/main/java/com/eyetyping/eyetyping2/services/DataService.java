@@ -20,6 +20,7 @@ public class DataService{
     private final Random random = new Random();
 
     private int userId;
+    private int session;
 
     //Timer variables
     private long startTime;
@@ -41,17 +42,20 @@ public class DataService{
     private int totalPhrasesRetrieved = 0;
 
     private DataService(){
-        loadUserId();
+        loadUserIdandSession();
         loadDataset();
         for (GroupNames group :GroupNames.values())
             accessesData.put(group.getGroupName(), 0);
     }
 
-    private void loadUserId(){
+    private void loadUserIdandSession(){
         File datasetTxt = new File(GlobalVariables.USER_ID_PATH);
         try(Scanner reader = new Scanner(datasetTxt)) {
-            while (reader.hasNext())
-                userId = Integer.parseInt(reader.nextLine());
+            while (reader.hasNext()){
+                String txtInfo = reader.nextLine();
+                userId = Integer.parseInt(txtInfo.split(" ")[0]);
+                session = Integer.parseInt(txtInfo.split(" ")[1]);
+            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -59,7 +63,15 @@ public class DataService{
 
     public void incrementUserId(){
         try(FileWriter fileWriter = new FileWriter(GlobalVariables.USER_ID_PATH, false)){
-            fileWriter.writePhrase(userId + 1 + "");
+            if(!finished) {
+                if (session == 5) {
+                    userId += 1;
+                    session = 1;
+                } else {
+                    session += 1;
+                }
+            }
+            fileWriter.writePhrase(userId + " " + session);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -132,7 +144,7 @@ public class DataService{
     }
 
     private String [] getCsvHeader(){
-        String headerAux = "Id, Technique, Phrase Number, Given Phrase, Typed Phrase, Minimum String Distance Error Rate, Keystrokes Per Character (KSPC) ,Tempo (s), Characters written (including spaces), Words Written, WPM, AWPM, Keystrokes Per Second(KSPS),Deleted letters, Deleted words";
+        String headerAux = "Id, Session, Technique, Phrase Number, Given Phrase, Typed Phrase, Minimum String Distance Error Rate, Keystrokes Per Character (KSPC) ,Tempo (s), Characters written (including spaces), Words Written, WPM, AWPM (1), AWPM (2), Keystrokes Per Second(KSPS),Deleted letters, Deleted words";
         String[] both = Arrays.copyOf(headerAux.split(", "), headerAux.split(", ").length + accessesData.keySet().toArray(new String[0]).length);
         System.arraycopy(accessesData.keySet().toArray(new String[0]), 0, both, headerAux.split(", ").length, accessesData.keySet().toArray(new String[0]).length);
         return both;
@@ -147,6 +159,7 @@ public class DataService{
         double msdErrorR = msdErrorRate(originalPhrase, fixedTypedPhrase);
         List<String> data = new ArrayList<>();
         data.add(String.valueOf(userId));
+        data.add(String.valueOf(session));
         data.add("Dwell Time");
         data.add(String.valueOf(getTotalPhrasesRetrieved()));
         data.add(originalPhrase);
@@ -157,7 +170,8 @@ public class DataService{
         data.add(String.valueOf(totalCharsWritten));
         data.add(String.valueOf(words));
         data.add(String.valueOf(wpm));
-        data.add(String.valueOf(adjustedWordsPerMinute(wpm, msdErrorR)));
+        data.add(String.valueOf(adjustedWordsPerMinute(wpm, msdErrorR, 1))); //ajuste pouco acentuado
+        data.add(String.valueOf(adjustedWordsPerMinute(wpm, msdErrorR, 2))); //ajuste pouco acentuado
         data.add(String.valueOf(keystrokesPerSecond(keyStrokes, seconds)));
         data.add(String.valueOf(totalLetterDeletes));
         data.add(String.valueOf(totalWordDeletes));
