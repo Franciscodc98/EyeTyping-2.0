@@ -63,7 +63,7 @@ public class DataService{
 
     public void incrementUserId(){
         try(FileWriter fileWriter = new FileWriter(GlobalVariables.USER_ID_PATH, false)){
-            if(!finished) {
+            if(finished) {
                 if (session == 5) {
                     userId += 1;
                     session = 1;

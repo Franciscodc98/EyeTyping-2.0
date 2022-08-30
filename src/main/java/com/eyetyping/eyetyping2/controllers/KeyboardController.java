@@ -583,7 +583,7 @@ public class KeyboardController implements Initializable {
                 wordsWritten.setText("");
                 writingService.clearWrittenText();
                 dataService.incrementTotalPhrasesRetried();
-            }else if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() <= 5)
+            }else if(event.getCode() == KeyCode.CONTROL && dataService.getTotalPhrasesRetrieved() <= 8)
                 controlPressed();
         });
     }
@@ -598,7 +598,7 @@ public class KeyboardController implements Initializable {
             emptyRecommendedWords();
             clearAllPopupButtons();
         }else{
-            if(dataService.getTotalPhrasesRetrieved() < 5){
+            if(dataService.getTotalPhrasesRetrieved() < 8){
                 dataService.setPaused(true);
                 wordsWritten.setTimerOnFeedback(false);
                 dataService.saveDataToCsv(dataService.csvLineData(wordsToWrite.getText(), writingService.getTextString()));
